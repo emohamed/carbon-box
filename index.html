@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+	<title>Carbon Box</title>
+	<link rel="stylesheet" href="css/page.css" type="text/css" media="all" />
+	<link rel="stylesheet" href="css/carbon-box.css" type="text/css" media="all" />
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script> 
+	<script type="text/javascript" src="js/carbon-box.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			$('select').carbonBox({
+				// animation_speed: 100,
+				// namespace: "ex1",
+				// select_container: '<div class="my-cool-container"></div>',
+				option_container: $('<span class="option-container-in-the-li"></span>'),
+				/*
+				filter_item: function (item) {
+					if (item.data('animation_speed')) {};
+					item.prepend("Cool, huh?");
+				}
+				*/
+				// optgroup_container: '<span class="optgroup-container-in-the-li"></span>',
+				// use_jScrollPane: true
+			});
+		})
+	</script>
+</head>
+<body>
+<!-- <form method="get" accept-charset="utf-8"> -->
+	<strong>Base example</strong><br />
+	<select id="simple-example">
+		<option value="opt1val">Default value</option>
+		<option>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+		proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</option>
+		<option>opt 3</option>
+		<option>opt 4</option>
+		<option>opt 5</option>
+	</select>
+
+	<hr />
+
+	<strong>Base example</strong><br />
+	<select id="simple-example2">
+		<option value="opt1val">Default value</option>
+		<option>opt 2</option>
+		<option>opt 3</option>
+		<option>opt 4</option>
+		<option>opt 5</option>
+	</select>	
+
+	<input type="reset" name="" value="Reset">
+<!-- </form> -->
+
+<!-- 
+<div class="example">
+	<div class="crb-cont ns-cont">
+		<div class="crb-inner-cont ns-inner-cont">
+			<div class="crb-top ns-top">
+				<div class="crb-active-option ns-active-option">Default value</div>
+				<div class="crb-arrow ns-arrow"><span></span></div>
+			</div>
+			<div class="crb-dd-cont ns-dd-cont">
+				<ul class="crb-options ns-options">
+					<li class="crb-option ns-option crb-active ns-active" data-value="opt1val">Opt 1</li>
+					<li class="crb-option ns-option" data-value="opt 2">Opt 2</li>
+					<li class="crb-option ns-option" data-value="opt 3">Opt 3</li>
+					<li class="crb-option ns-option" data-value="opt 4">Opt 4</li>
+					<li class="crb-option ns-option" data-value="opt 5">Opt 5</li>
+					
+					<li class="crb-optgroup-cont ns-optgroup">
+						<span class="crb-optgroup-label ns-optgroup-label">Optgroup Label</span>
+						<ul class="crb-optgroup-options ns-optgroup-options">
+							<li class="crb-option ns-option" data-value="opt1val">Opt 1</li>
+							<li class="crb-option ns-option" data-value="opt 2">Opt 2</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			
+		</div>
+	</div>
+</div>
+
+<hr />
+<strong>Opt group</strong><br />
+<select id="optgroup-example">
+	<optgroup label="Opt group example">
+		<option>opt 1</option>
+		<option>opt 2</option>
+		<option>opt 3</option>
+		<option>opt 4</option>
+		<option>opt 5</option>
+	</optgroup>
+</select>
+
+<hr />
+
+<strong>Multiple select</strong><br />
+<select id="multiple-example" multiple>
+	<option>opt 1</option>
+	<option>opt 2</option>
+	<option>opt 3</option>
+	<option>opt 4</option>
+	<option>opt 5</option>
+</select>
+-->
+
+</body>
+</html>

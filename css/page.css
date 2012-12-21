@@ -1,0 +1,15 @@
+* { margin: 0; padding: 0; outline: 0; }
+
+body { background: #fff; font-family: arial, sans-serif; font-size: 12px; line-height: 1.2; color: #000; min-width: 800px; }
+
+body > strong { font-size: 24px; color: #333; margin: 20px 0; padding: 5px 40px; display: block; background: #eee; }
+
+hr { margin: 40px 0; }
+
+.example { padding: 0 40px; overflow: hidden; min-height: 240px; clear: both; }
+
+.crb-cont { margin-top: 20px; }
+
+.crb-mobile { margin-left: 40px; }
+
+#simple-example { width: 300px; }
