@@ -1,34 +1,4 @@
 /* Carbon Box 1.0 */
-
-.crb-cont { width: 200px; height: 28px; }
-.crb-opening, .crb-opened { z-index: 999; }
-
-.crb-cont, .crb-mobile { float: left; margin-right: 5px; position: relative; }
-
-	.crb-cont-inner, .crb-mobile { background: #fff; border: 2px solid #999; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,.1) inset; }
-
-		.crb-top { display: block; margin: 0 28px 0 0; height: 24px; overflow: hidden; cursor: pointer; }
-
-			.crb-active-option { white-space: nowrap; text-overflow: ellipsis; }
-			.crb-active-option, .crb-mobile select { font-size: 12px; line-height: 24px; color: #333; padding: 0 0 0 6px; white-space: nowrap; text-overflow: ellipsis; }
-			.crb-arrow, .crb-mobile:before { width: 20px; height: 20px; background: #ccc; border-radius: 2px; position: absolute; top: 4px; right: 4px; overflow: hidden; }
-			.crb-arrow span { display: block; margin: 8px auto; }
-			.crb-arrow span, .crb-mobile:after { width: 0; height: 0; border-width: 4px; border-style: solid; border-color: #666 #ccc #ccc; overflow: hidden; }
-
-		.crb-dd-cont { display: none; max-height: 180px; overflow-x: hidden; overflow-y: auto; }
-
-			.crb-options { list-style: none; font-size: 0; line-height: 0; padding: 4px 0; }
-
-				.crb-option { font-size: 12px; line-height: 16px; padding: 4px 5px; cursor: pointer; color: #333; }
-				
-				.crb-disabled, .crb-disabled.crb-focused { background: #fff; color: #999;}
-				.crb-focused {background: #000; color: #fff;}
-				.crb-active { background: #ededed; }
-
-				.crb-optgroup-cont .crb-option { padding-left: 10px; }
-
-					.crb-optgroup-label { display: block; font-size: 12px; color: #333; line-height: 24px; padding: 0 0 0 5px; font-weight: bold; background: #fafafa; }
-
 .crb-mobile { width: 196px; height: 24px; }
 .crb-mobile:before, .crb-mobile:after { content: ''; }
 .crb-mobile:before { margin: -2px -2px 0 0; }
@@ -41,13 +11,17 @@
 .crb-container { float: left; margin-right: 5px; width: 200px; text-align: left; }
 
 .crb-inner,
-.crb-mobile { background: #fff; border: 2px solid #999; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0, .1) inset; }
+.crb-mobile,
+.crb-multiple { background: #fff; border: 2px solid #999; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0, .1) inset; }
 
 .crb-head { cursor: pointer; overflow: hidden; height: 24px; margin: 0 28px 0 0; }
-.crb-current { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.crb-current { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-size: 12px; line-height: 24px; color: #333; padding: 0 0 0 6px; }
 
-.crb-arrow { width: 20px; height: 20px; background: #ccc; border-radius: 2px; position: absolute; top: 4px; right: 4px; }
+.crb-arrow,
+.crb-mobile:before { width: 20px; height: 20px; background: #ccc; border-radius: 2px; position: absolute; top: 4px; right: 4px; }
 .crb-arrow span { display: block; margin: 8px auto; }
+.crb-arrow span,
+.crb-mobile:after { width: 0; height: 0; border-width: 4px; border-style: solid; border-color: #666 #ccc #ccc; overflow: hidden; }
 
 .crb-dropdown { max-height: 180px; overflow-x: hidden; overflow-y: auto; }
 .crb-list { list-style: none outside none; font-size: 0; line-height: 0; padding: 4px 0; }
@@ -55,20 +29,27 @@
 .crb-option { font-size: 12px; line-height: 16px; padding: 4px 5px; cursor: pointer; color: #333; }
 .crb-optgroup-child { padding-left: 10px; }
 
+.crb-focused { background: #000; color: #fff; }
+
 .crb-option:hover,
-.crb-active { background: #ededed; }
+.crb-active { background: #ededed; color: #000; }
 
 .crb-disabled,
 .crb-disabled:hover { cursor: default; background: transparent; color: #ccc; }
 
 .crb-optgroup { font-size: 12px; line-height: 16px; font-weight: bold; padding: 4px 5px; color: #000; }
-
+.crb-optgroup.crb-focused { background: transparent; color: #000; }
 
 /*--- States ---*/
 .crb-default,
 .crb-mobile { height: 28px; position: relative; }
 
-.crb-default .crb-dropdown 
+.crb-default .crb-dropdown { display: none; }
+
+.crb-mobile { width: 196px; height: 24px; }
+.crb-mobile:before, .crb-mobile:after { content: ''; }
+.crb-mobile:before { margin: -2px -2px 0 0; }
+.crb-mobile:after { position: absolute; top: 10px; right: 8px; }
 
 .crb-opening,
 .crb-opened { z-index: 999; }
