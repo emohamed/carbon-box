@@ -29,7 +29,7 @@
 			animation_duration: 500,
 
 			// What will be the animation
-			animation_type: $.fn.slideToggle,
+			transition: 'slide',
 
 			// Optional name space for all classes of the select box
 			namespace: false,
@@ -93,20 +93,20 @@
 
 			// Various elements used across the source code
 			var containers = {
-				outer_container: $('<div class="' + css_class('cont') + '" style="width: ' + select_width + 'px;"></div>'),
-				inner_container: $('<div class="' + css_class('cont-inner') + '"></div>'),
-				head: $('<div class="' + css_class('top') + '" style="margin-right: ' + arrow_width + 'px;"></div>'),
-				active: $('<div class="' + css_class('active-option') + '"></div>'),
+				outer_container: $('<div class="' + css_class('container') + '" style="width: ' + select_width + 'px;"></div>'),
+				inner_container: $('<div class="' + css_class('inner') + '"></div>'),
+				head: $('<div class="' + css_class('head') + '" style="margin-right: ' + arrow_width + 'px;"></div>'),
+				active: $('<div class="' + css_class('current') + '"></div>'),
 				arrow: $('<div class="' + css_class('arrow') + '"><span></span></div>'),
-				dropdown_container: $('<div class="' + css_class('dd-cont') + '"></div>'),
-				dropdown: $('<ul class="' + css_class('dropdown') + '"></ul>'),
+				dropdown_container: $('<div class="' + css_class('dropdown') + '"></div>'),
+				dropdown: $('<ul class="' + css_class('list') + '"></ul>'),
 				option: $('<li class="' + css_class('option') + '"></li>'),
-				optgroup: $('<li class="' + css_class('optgroup') + '" />'),
-				mobile_wrap : $('<div class="' + css_class('mobile') + '" style="width:' + select_width + 'px;" />')
+				optgroup: $('<li class="' + css_class('optgroup') + '" />')
 			}
 
 			if(options.is_mobile()) {
-				$(this).wrap(containers.mobile_wrap);
+				containers.outer_container.addClass(css_class('mobile'));
+				$(this).wrap(containers.outer_container);
 				return;
 			}
 
@@ -160,6 +160,11 @@
 							item.attr('data-disabled', 'true');
 						}
 
+						// check for optgroup parent
+						if (child.parent('optgroup').length) {
+							item.addClass(css_class('optgroup-child'));
+						}
+
 						// save the option as data
 						item.data('associated-option', child);
 						child.data('associated-item', item);
@@ -183,6 +188,7 @@
 					containers.outer_container.addClass(css_class('multiple'));
 					containers.outer_container.append(dropdown_container.append(dropdown));
 				} else {
+					containers.outer_container.addClass(css_class('default'));
 					containers.outer_container.append(
 						containers.inner_container.append(
 							containers.head
@@ -347,11 +353,25 @@
 						containers.dropdown_container.stop().hide();
 					}
 
+					var animation = '';
+
+					switch(options.transition) {
+						case 'slide': 
+							animation = 'slideUp';
+						break;
+						case 'fade':
+							animation = 'fadeOut';
+						break;
+						default: 
+							animation = 'hide';
+						break;
+					}
+
 					containers.outer_container.addClass(css_class('closing'))
 
 					containers.dropdown_container
 						.stop()
-						.slideUp(options.animation_duration, function () {
+						[animation](options.animation_duration, function () {
 							containers.outer_container
 								.removeClass(css_class('closing'))
 								.removeClass(css_class('opened'));
@@ -365,9 +385,22 @@
 				containers.outer_container
 					.addClass(css_class('opening'))
 
+				var animation = '';
+
+				switch(options.transition) {
+					case 'slide': 
+						animation = 'slideDown';
+					break;
+					case 'fade':
+						animation = 'fadeIn';
+					break;
+					default: 
+						animation = 'show';
+					break;
+				}
+
 				containers.dropdown_container
-					.stop()
-					.slideDown(options.animation_duration, function () {
+					.stop()[animation](options.animation_duration, function () {
 						containers.outer_container
 							.removeClass(css_class('opening'))
 							.addClass(css_class('opened'));

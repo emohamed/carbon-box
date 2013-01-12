@@ -37,3 +37,38 @@
 
 .crb-multiple { height: auto; border: 1px solid #ccc; }
 .crb-multiple .crb-dd-cont { display: block; }
+
+.crb-container { float: left; margin-right: 5px; width: 200px; text-align: left; }
+
+.crb-inner,
+.crb-mobile { background: #fff; border: 2px solid #999; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0, .1) inset; }
+
+.crb-head { cursor: pointer; overflow: hidden; height: 24px; margin: 0 28px 0 0; }
+.crb-current { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+
+.crb-arrow { width: 20px; height: 20px; background: #ccc; border-radius: 2px; position: absolute; top: 4px; right: 4px; }
+.crb-arrow span { display: block; margin: 8px auto; }
+
+.crb-dropdown { max-height: 180px; overflow-x: hidden; overflow-y: auto; }
+.crb-list { list-style: none outside none; font-size: 0; line-height: 0; padding: 4px 0; }
+
+.crb-option { font-size: 12px; line-height: 16px; padding: 4px 5px; cursor: pointer; color: #333; }
+.crb-optgroup-child { padding-left: 10px; }
+
+.crb-option:hover,
+.crb-active { background: #ededed; }
+
+.crb-disabled,
+.crb-disabled:hover { cursor: default; background: transparent; color: #ccc; }
+
+.crb-optgroup { font-size: 12px; line-height: 16px; font-weight: bold; padding: 4px 5px; color: #000; }
+
+
+/*--- States ---*/
+.crb-default,
+.crb-mobile { height: 28px; position: relative; }
+
+.crb-default .crb-dropdown 
+
+.crb-opening,
+.crb-opened { z-index: 999; }
