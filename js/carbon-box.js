@@ -86,8 +86,7 @@
 				dropdown_container: $('<div class="' + css_class('dd-cont') + '"></div>'),
 				dropdown: $('<ul class="' + css_class('dropdown') + '"></ul>'),
 				option: $('<li class="' + css_class('option') + '"></li>'),
-
-				mobile_wrap: $('<div class="' + css_class('mobile') + '" style="width: ' + select_width + 'px;" />')
+				mobile_wrap : $('<div class="' + css_class('mobile') + '" style="width:' + select_width + 'px;" />')
 			}
 
 			if(is_mobile()) {
@@ -111,7 +110,7 @@
 				var dropdown = containers.dropdown;
 
 				// The options in the original select box
-				var select_children = select.children();
+				var select = select.children();
 
 				for (var i = 0; i < select_children.length; i++) {
 					// The option in the original select box
