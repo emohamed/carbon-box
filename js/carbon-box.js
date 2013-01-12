@@ -37,10 +37,6 @@
 			// callback that gets called whenever an item is chosen
 			on_change: $.noop,
 			
-			// function that can modify each item in the custom drop down before 
-			// showing it 
-			filter_item: $.noop,
-
 			// render item function
 			render_item: false,
 			
@@ -180,6 +176,9 @@
 
 			// selected_item is jQuery object of the chosen item in the custom UI
 			function set_active_option(selected_item) {
+				if (selected_item.length == 0) {
+					return;
+				}
 				selected_item.data('associated-option').attr("selected", "selected");
 
 				containers.active.text(selected_item.text());
@@ -190,6 +189,21 @@
 				select.trigger('change');
 			}
 			
+			function keyboard_element_change() {
+
+			}
+			function keydown_callback(event) {
+
+				// console.log(event.keyCode + " clicked. ");
+			}
+			function start_keyboard_monitoring() {
+				$(document).on('keydown', 'body', keydown_callback);
+			}
+
+			function stop_keyboard_monitoring() {
+				$(document).off('keydown', 'body', keydown_callback);
+			}
+
 			function close_dropdown(skip_animation) {
 				skip_animation = skip_animation || false;
 
@@ -206,6 +220,8 @@
 							.removeClass(css_class('closing'))
 							.removeClass(css_class('opened'));
 					});
+				
+				stop_keyboard_monitoring();
 			}
 			
 			function open_dropdown() {
@@ -218,7 +234,9 @@
 						containers.outer_container
 							.removeClass(css_class('opening'))
 							.addClass(css_class('opened'));
-					})
+					});
+
+				start_keyboard_monitoring();
 			}
 			
 			var custom_ui = build_custom_ui(select);
