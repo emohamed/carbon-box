@@ -444,9 +444,9 @@
 			});
 
 			// Prevent text selection in the custom select box
-			containers.head.on('mousedown', function (e) {
-				e.preventDefault();
-			});
+			// containers.head.on('mousedown', function (e) {
+			// 	e.preventDefault();
+			// });
 
 			// Handle click on the select box control item 
 			containers.head.on('click', function () {

@@ -1,13 +1,4 @@
 /* Carbon Box 1.0 */
-.crb-mobile { width: 196px; height: 24px; }
-.crb-mobile:before, .crb-mobile:after { content: ''; }
-.crb-mobile:before { margin: -2px -2px 0 0; }
-.crb-mobile:after { position: absolute; top: 10px; right: 8px; }
-.crb-mobile select { -webkit-appearance: button; -moz-appearance: button; appearance: button; background: transparent; border: 0 none; width: 100%; height: 100%; display: block; }
-
-.crb-multiple { height: auto; border: 1px solid #ccc; }
-.crb-multiple .crb-dd-cont { display: block; }
-
 .crb-container { float: left; margin-right: 5px; width: 200px; text-align: left; }
 
 .crb-inner,
@@ -15,7 +6,8 @@
 .crb-multiple { background: #fff; border: 2px solid #999; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0, .1) inset; }
 
 .crb-head { cursor: pointer; overflow: hidden; height: 24px; margin: 0 28px 0 0; }
-.crb-current { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-size: 12px; line-height: 24px; color: #333; padding: 0 0 0 6px; }
+.crb-current,
+.crb-mobile select { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-size: 12px; line-height: 24px; color: #333; padding: 0 0 0 6px; }
 
 .crb-arrow,
 .crb-mobile:before { width: 20px; height: 20px; background: #ccc; border-radius: 2px; position: absolute; top: 4px; right: 4px; }
@@ -50,6 +42,7 @@
 .crb-mobile:before, .crb-mobile:after { content: ''; }
 .crb-mobile:before { margin: -2px -2px 0 0; }
 .crb-mobile:after { position: absolute; top: 10px; right: 8px; }
+.crb-mobile select { -webkit-appearance: button; -moz-appearance: button; appearance: button; background: transparent; border: 0 none; width: 100%; height: 100%; display: block; }
 
 .crb-opening,
 .crb-opened { z-index: 999; }
