@@ -39,9 +39,12 @@
 			
 			// render item function
 			render_item: false,
-			
-			// Optional HTML fragment that will wrap each entry
-			option_container: $(''),
+
+			// mobile detection
+			is_mobile: function(){
+				var ua = navigator.userAgent || navigator.vendor || window.opera;
+				return (/iPhone|iPod|iPad|Android|BlackBerry|Opera Mini|IEMobile/).test(ua);
+			},
 			
 			// Whether to use the jScrollPane API
 			use_jScrollPane: true
@@ -85,10 +88,11 @@
 				dropdown_container: $('<div class="' + css_class('dd-cont') + '"></div>'),
 				dropdown: $('<ul class="' + css_class('dropdown') + '"></ul>'),
 				option: $('<li class="' + css_class('option') + '"></li>'),
+				optgroup: $('<li class="' + css_class('optgroup') + '" />'),
 				mobile_wrap : $('<div class="' + css_class('mobile') + '" style="width:' + select_width + 'px;" />')
 			}
 
-			if(is_mobile()) {
+			if(options.is_mobile()) {
 				$(this).wrap(containers.mobile_wrap);
 				return;
 			}
@@ -104,7 +108,7 @@
 			
 			// Build the HTML structure for the custom select box
 			function build_custom_ui(select) {
-				// Shortcut for the drop down UL container
+				// Shortcuts to the container & dropdown.
 				var dropdown_container = containers.dropdown_container;
 				var dropdown = containers.dropdown;
 
@@ -115,8 +119,8 @@
 					// The option in the original select box
 					var child = $(select_children[i]);
 					// The item in the custom drop down
-					var item = containers.option.clone();
-					
+					var item;
+
 					// if child is option
 					if (child.is('option')) {
 
@@ -128,47 +132,53 @@
 						// if the render functions is overwritten
 						if ($.isFunction(options.render_item)) {
 							item = options.render_item(child);
+							item.addClass(css_class('option'));
 						} else {
+							item = containers.option.clone();
 							item.text(child.text());
+						}
+
+						// check for disabled option
+						if (child.is(':disabled')) { 
+							item.addClass(css_class('disabled'))
+							item.attr('data-disabled', 'true');
 						}
 
 						// save the option as data
 						item.data('associated-option', child);
+						child.data('associated-item', item);
 
-						// append to the container
-						dropdown.append(item);
+					} else if (child.is('optgroup')) {
 
+						item = containers.optgroup.clone();
+						item.text(child.attr('label'));
+
+					} else {
+						report_errorreport_error("Couldn't render option, it's " +  "not `option` or `optgroup` tag", select_child);
 					}
 
-					// if (select_child.is('option')) {
-					// 	item.text(select_child.text());
-					// 	item.data('associated-option', select_child);
-						
-					// 	var wrap = options.option_container;
-					// 	if (wrap) {
-					// 		item.carbonWrapUserContainer(wrap);
-					// 	}
-					// 	options.filter_item(item);
-						
-					// 	dropdown.append(item);
-					// } else if (select_child.is('optgroup')) {
-					// 	// TODO
-					// } else {
-					// 	report_error("Couldn't render option, it's " + 
-					// 		"not `option` or `optgroup` tag", select_child);
-					// }
+					// append to the dropdown container
+					dropdown.append(item);
+
 				};
 
 				// Build the HTML structure of the new element
-				containers.outer_container.append(
-					containers.inner_container.append(
-						containers.head
-						.append(containers.active)
-						.append(containers.arrow)
-					).append(
-						dropdown_container.append(dropdown)
-					)
-				);
+				if (is_multiple(select_element)) {
+
+					containers.outer_container.addClass(css_class('multiple'));
+					containers.outer_container.append(dropdown_container.append(dropdown));
+
+				} else {
+					containers.outer_container.append(
+						containers.inner_container.append(
+							containers.head
+							.append(containers.active)
+							.append(containers.arrow)
+						).append(
+							dropdown_container.append(dropdown)
+						)
+					);
+				}
 
 				return containers.outer_container;
 			}
@@ -242,11 +252,11 @@
 			var custom_ui = build_custom_ui(select);
 			
 			// Replace the select box with the custom UI
-			select.hide().after(custom_ui);
+			select.after(custom_ui);
 
 			// Initialize the custom select box initial state
-			var selected_index = select.prop('selectedIndex');
-			var selected_option = containers.dropdown_container.find('li:eq(' + selected_index + ')');
+			var selected = select.find('option').filter(':selected').slice(0,1);
+			var selected_option = selected.data('associated-item');
 			set_active_option(selected_option);
 			
 			/********************/
@@ -288,6 +298,7 @@
 
 		});
 	};
+
 	// Small helpers
 	function validate_options(options) {
 		var errors = [];
@@ -298,6 +309,7 @@
 		}
 		return errors;
 	}
+
 	function report_error(message, element) {
 		if (typeof 'console' != "undefined") {
 			console.log("carbonBox error: " + message);
@@ -307,11 +319,8 @@
 		}
 	}
 
-	function is_mobile() {
-		return (
-			(navigator.platform.indexOf("iPhone") != -1) ||
-			(navigator.platform.indexOf("iPad") != -1) || 
-			(navigator.appVersion.indexOf('Android') != -1)
-		);
+	function is_multiple(select){
+		return 'size' in select.attributes || 'multiple' in select.attributes;
 	}
+
 })(jQuery);
