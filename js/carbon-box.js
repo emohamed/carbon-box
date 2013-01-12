@@ -66,9 +66,14 @@
 		return this.each(function () {
 			var select_element = this;
 			var select = $(select_element);
+			var current_active_item = null;
 			var select_width = parseInt($(select_element).css('width'));
 			var arrow_width = parseInt($('.crb-arrow').css('width')) + 4;
+			
 			var ns = 'crb-', user_ns = options.namespace;
+
+			// a jQuery object that contains all items from the select box
+			var all_items;
 
 			if (select_width == undefined) {
 				select_width = 200;
@@ -105,6 +110,9 @@
 				return;
 			}
 
+			function expand_css_class(className) {
+				return '.' + ns + className;
+			}
 			// returns string collection of css classes with appropriate prefixes  
 			function css_class(className) {
 				var classes = [ns + className];
@@ -162,7 +170,7 @@
 						item.text(child.attr('label'));
 
 					} else {
-						report_errorreport_error("Couldn't render option, it's " +  "not `option` or `optgroup` tag", select_child);
+						report_errorreport_error("Couldn't render option, it's not `option` or `optgroup` tag", select_child);
 					}
 
 					// append to the dropdown container
@@ -183,7 +191,7 @@
 						).append(dropdown_container.append(dropdown))
 					);
 				}
-
+				all_items = containers.dropdown_container.find(expand_css_class('option'));
 				return containers.outer_container;
 			}
 			
@@ -210,17 +218,118 @@
 					}
 
 				}
+				// Update the original select
+				// TODO: do we really need trigger.change? Test it across browsers. 
+				select.val(selected_item.data('associated-option')).trigger('change');
 
-				// Trigger the change event 
-				select.trigger('change');
+				current_active_item = selected_item;
 			}
+
+			// selected_item is jQuery object of the chosen item in the custom UI
+			function set_focused_item(item) {
+				if (item.length == 0) {
+					return;
+				}
+				var focused_class = css_class('focused');
+				// Remove the focus from other items
+				all_items.removeClass(focused_class);
+
+				// Focus the element
+				item.addClass(focused_class);
+			}
+
+			// Jumps between select box options. 
+			// direction - either up or down. Indicates the move direction
+			// step_size - how many items should be skipped. Starting from 1 rather than 0 
+			function move_to_item(direction, step_size) {
+				var current_item_index;
+
+				var focused_item = all_items.filter(expand_css_class('focused'));
+				if (focused_item.length != 0) {
+					current_item_index = all_items.index(focused_item);
+				} else {
+					current_item_index = all_items.index(current_active_item);
+				}
+				
+
+				// Whether to look in the items before or after the current one
+				var factor = direction == 'up' ? -1 : 1;
+				
+				// Determinate the index of the target item; it's not yet clear whether
+				// we'll be able to go to this item, but it's a base point. 
+				var target_item_index = current_item_index + step_size * factor;
+				
+				// Don't allow negative indexes
+				target_item_index = Math.max(target_item_index, 0);
+				
+				// Don't allow indexes to be bigger than the items count
+				target_item_index = Math.min(target_item_index, all_items.length - 1);
+				
+				var target_item = all_items.eq(target_item_index);
+				
+				if (target_item.is(expand_css_class('disabled'))) {
+					if (direction == "down" && all_items.index(target_item) == all_items.length - 1) {
+						var last_active_item = all_items.filter(":not(" + expand_css_class('disabled') + "):last");
+						set_focused_item(last_active_item);
+					} else if (direction == "up" && all_items.index(target_item) == 0) {
+						var first_active_item = all_items.filter(":not(" + expand_css_class('disabled') + "):first");
+						set_focused_item(first_active_item);
+					} else {
+						// TODO: do we really need recursion here? Far more effecient 
+						// solution would be to loop through the items with a while
+						move_to_item(direction, step_size + 1);
+					}
+				} else {
+					// An active item is found. Mark it is as active.
+					set_focused_item(target_item);
+				}
+
+				return false;
+			}	
 			
-			function keyboard_element_change() {
-
-			}
 			function keydown_callback(event) {
+				var interesting_keycodes = {
+					key_down: 40,
+					key_up: 38,
 
-				// console.log(event.keyCode + " clicked. ");
+					home: 36,
+					end: 35,
+
+					page_up: 33,
+					page_down: 34,
+					
+					enter: 13,
+
+					tab: 9
+				}
+				var key_code = event.keyCode;
+				switch (event.keyCode) {
+					case interesting_keycodes.key_down: return move_to_item('down', 1);
+					case interesting_keycodes.key_up: return move_to_item('up', 1);
+					
+					case interesting_keycodes.home: return move_to_item('up', 10000000);
+					case interesting_keycodes.end: return move_to_item('down', 10000000);
+
+						break;
+					case interesting_keycodes.page_up:
+
+						break;
+
+					case interesting_keycodes.page_down:
+
+						break;
+
+					case interesting_keycodes.enter:
+
+						break;
+
+					case interesting_keycodes.tab:
+
+						break;
+
+					default: 
+						console.log("nothing to do ... ");
+				}
 			}
 			function start_keyboard_monitoring() {
 				$(document).on('keydown', 'body', keydown_callback);
@@ -314,9 +423,17 @@
 					open_dropdown();
 				}
 			});
+			
+			$('li', containers.dropdown_container).on('mouseenter', function () {
+				$(this).addClass(css_class('focused'));
+			});
+			$('li', containers.dropdown_container).on('mouseleave', function () {
+				$(this).removeClass(css_class('focused'));
+			});
 
+			// containers.dropdown_container.on('hover', 'li', );
 			select.on('change', function () {
-				console.log("1");
+				// console.log("1");
 			});
 
 			// Close the select drop down when clicking out of the select box container 
