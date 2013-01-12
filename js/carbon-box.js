@@ -276,5 +276,4 @@
 			(navigator.appVersion.indexOf('Android') != -1)
 		);
 	}
-
 })(jQuery);
