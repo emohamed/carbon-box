@@ -110,7 +110,7 @@
 				var dropdown = containers.dropdown;
 
 				// The options in the original select box
-				var select_children = select.children();
+				var select = select.children();
 
 				for (var i = 0; i < select_children.length; i++) {
 					// The option in the original select box
