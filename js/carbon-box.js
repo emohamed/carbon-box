@@ -296,7 +296,8 @@
 				}
 
 				return false;
-			}	
+			}
+
 			
 			function keydown_callback(event) {
 				var interesting_keycodes = {
@@ -310,7 +311,6 @@
 					page_down: 34,
 					
 					enter: 13,
-
 					tab: 9
 				}
 				var key_code = event.keyCode;
@@ -318,8 +318,8 @@
 					case interesting_keycodes.key_down: return move_to_item('down', 1);
 					case interesting_keycodes.key_up: return move_to_item('up', 1);
 					
-					case interesting_keycodes.home: return move_to_item('up', 10000000);
-					case interesting_keycodes.end: return move_to_item('down', 10000000);
+					case interesting_keycodes.home: return move_to_item('up', all_items.length);
+					case interesting_keycodes.end: return move_to_item('down', all_items.length);
 					
 					case interesting_keycodes.page_up:
 						break;
@@ -327,28 +327,42 @@
 					case interesting_keycodes.page_down:
 						break;
 
+					case interesting_keycodes.tab:
 					case interesting_keycodes.enter:
-						console.log(all_items);
-						var currently_focused = all_items.find(expand_css_class('focused'));
-						console.log(currently_focused);
+						var currently_focused = all_items.filter(expand_css_class('focused'));
 						set_active_option(currently_focused);
 						close_dropdown();
 						break;
 
-					case interesting_keycodes.tab:
-
-						break;
-
+					
 					default: 
-						console.log("nothing to do ... ");
+						// console.log("nothing to do ... ");
 				}
 			}
+			var search_phrase = '';
+			function keypress_callback(event) {
+				var interesting_keycodes = {
+					key_a: 65,
+					key_z: 90,
+					digit_0: 96,
+					digit_9: 105
+				};
+				var _char = String.fromCharCode(event.keyCode);
+				search_phrase += _char;
+				// setTimeout(function () {
+				// 	alert("performing ")
+				// })
+			}
+
 			function start_keyboard_monitoring() {
 				$(document).on('keydown', 'body', keydown_callback);
+				$(document).on('keypress', 'body', keypress_callback);
 			}
 
 			function stop_keyboard_monitoring() {
 				$(document).off('keydown', 'body', keydown_callback);
+				$(document).off('keypress', 'body', keypress_callback);
+				search_phrase = '';
 			}
 
 			function close_dropdown(skip_animation) {
