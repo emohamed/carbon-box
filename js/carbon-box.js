@@ -237,6 +237,7 @@
 					return;
 				}
 				var focused_class = css_class('focused');
+				
 				// Remove the focus from other items
 				all_items.removeClass(focused_class);
 
@@ -274,11 +275,15 @@
 				var target_item = all_items.eq(target_item_index);
 				
 				if (target_item.is(expand_css_class('disabled'))) {
-					if (direction == "down" && all_items.index(target_item) == all_items.length - 1) {
-						var last_active_item = all_items.filter(":not(" + expand_css_class('disabled') + "):last");
+					var is_last_item = all_items.index(target_item) == all_items.length - 1;
+					var is_first_item = all_items.index(target_item) == 0;
+					var active_items_filter_selector = ":not(" + expand_css_class('disabled') + ")";
+
+					if (direction == "down" && is_last_item) {
+						var last_active_item = all_items.filter(active_items_filter_selector + ":last");
 						set_focused_item(last_active_item);
-					} else if (direction == "up" && all_items.index(target_item) == 0) {
-						var first_active_item = all_items.filter(":not(" + expand_css_class('disabled') + "):first");
+					} else if (direction == "up" && is_first_item) {
+						var first_active_item = all_items.filter(active_items_filter_selector + ":first");
 						set_focused_item(first_active_item);
 					} else {
 						// TODO: do we really need recursion here? Far more effecient 
@@ -315,18 +320,19 @@
 					
 					case interesting_keycodes.home: return move_to_item('up', 10000000);
 					case interesting_keycodes.end: return move_to_item('down', 10000000);
-
-						break;
+					
 					case interesting_keycodes.page_up:
-
 						break;
 
 					case interesting_keycodes.page_down:
-
 						break;
 
 					case interesting_keycodes.enter:
-
+						console.log(all_items);
+						var currently_focused = all_items.find(expand_css_class('focused'));
+						console.log(currently_focused);
+						set_active_option(currently_focused);
+						close_dropdown();
 						break;
 
 					case interesting_keycodes.tab:
