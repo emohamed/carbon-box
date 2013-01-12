@@ -6,9 +6,10 @@
 	<link rel="stylesheet" href="css/carbon-box.css" type="text/css" media="all" />
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script> 
 	<script type="text/javascript" src="js/carbon-box.js"></script>
+	
 	<script type="text/javascript">
 		$(function() {
-			$('select').carbonBox({
+			$('.to-be-replaced').carbonBox({
 				// animation_speed: 100,
 				// namespace: "ex1",
 				// select_container: '<div class="my-cool-container"></div>',
@@ -24,18 +25,48 @@
 			});
 		})
 	</script>
+	<style type="text/css">
+		/* Demo page styles */
+		.demo-table { width: 600px; margin: 0 auto; }
+		.demo-table td, .demo-table th { padding: 5px; text-align: center;}
+	</style>
 </head>
 <body>
+	<div class="shell">
+		<table border="1" class="demo-table">
+			<thead>
+				<tr>
+					<th>Example Name</th>
+					<th>Original <code>select</code></th>
+					<th>Carbon Box</th>
+				</tr>	
+			</thead>	
+			<tr>
+				<td>Basic example</td>
+				<td>
+					<select class="simple-example original">
+						<option value="opt1val">Default value</option>
+						<option>Lorem ipsum </option>
+						<option>opt 3</option>
+						<option>opt 4</option>
+						<option>opt 5</option>
+					</select>
+				</td>
+				<td>
+					<select class="simple-example to-be-replaced">
+						<option value="opt1val">Default value</option>
+						<option>Lorem ipsum </option>
+						<option>opt 3</option>
+						<option>opt 4</option>
+						<option>opt 5</option>
+					</select>
+				</td>
+			</tr>
+		</table>
+	</div>
 <!-- <form method="get" accept-charset="utf-8"> -->
-	<strong>Base example</strong><br />
-	<select id="simple-example">
-		<option value="opt1val">Default value</option>
-		<option>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-		proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</option>
-		<option>opt 3</option>
-		<option>opt 4</option>
-		<option>opt 5</option>
-	</select>
+	<!-- <strong></strong><br />
+	
 
 	<hr />
 
@@ -48,7 +79,7 @@
 		<option>opt 5</option>
 	</select>	
 
-	<input type="reset" name="" value="Reset">
+	<input type="reset" name="" value="Reset"> -->
 <!-- </form> -->
 
 <!-- 
