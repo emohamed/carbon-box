@@ -21,9 +21,8 @@
 .crb-option { font-size: 12px; line-height: 16px; padding: 4px 5px; cursor: pointer; color: #333; }
 .crb-optgroup-child { padding-left: 10px; }
 
-.crb-focused { background: #000; color: #fff; }
-
 .crb-option:hover,
+.crb-focused,
 .crb-active { background: #ededed; color: #000; }
 
 .crb-disabled,
