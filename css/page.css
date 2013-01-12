@@ -13,3 +13,5 @@ hr { margin: 40px 0; }
 .crb-mobile { margin-left: 40px; }
 
 #simple-example { width: 300px; }
+
+select[multiple] { width: 100px; }

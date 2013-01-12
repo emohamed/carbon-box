@@ -27,7 +27,10 @@
 		options = $.extend({
 			// How fast will the animation show / hide the elements
 			animation_duration: 500,
-			
+
+			// What will be the animation
+			animation_type: $.fn.slideToggle,
+
 			// Optional name space for all classes of the select box
 			namespace: false,
 			
@@ -38,7 +41,7 @@
 			on_change: $.noop,
 			
 			// render item function
-			render_item: false,
+			render_item: null,
 
 			// mobile detection
 			is_mobile: function(){
@@ -69,6 +72,11 @@
 
 			if (select_width == undefined) {
 				select_width = 200;
+			}
+
+			// prevent re-initialization of the plugin
+			if (select.hasClass(css_class('enabled'))) {
+				return;
 			}
 			
 			// Handle non-select items early
@@ -164,19 +172,15 @@
 
 				// Build the HTML structure of the new element
 				if (is_multiple(select_element)) {
-
 					containers.outer_container.addClass(css_class('multiple'));
 					containers.outer_container.append(dropdown_container.append(dropdown));
-
 				} else {
 					containers.outer_container.append(
 						containers.inner_container.append(
 							containers.head
 							.append(containers.active)
 							.append(containers.arrow)
-						).append(
-							dropdown_container.append(dropdown)
-						)
+						).append(dropdown_container.append(dropdown))
 					);
 				}
 
@@ -189,11 +193,23 @@
 				if (selected_item.length == 0) {
 					return;
 				}
-				selected_item.data('associated-option').attr("selected", "selected");
 
-				containers.active.text(selected_item.text());
-				containers.dropdown_container.find('li').removeClass(css_class('active'));
-				selected_item.addClass(css_class('active'));
+				if (!is_multiple(select_element)) {
+					selected_item.data('associated-option').prop('selected', true);
+					selected_item.addClass(css_class('active'));
+					containers.active.text(selected_item.text());
+					containers.dropdown_container.find('li').not(selected_item).removeClass(css_class('active'));
+				} else {
+
+					if (selected_item.hasClass(css_class('active'))) {
+						selected_item.removeClass(css_class('active'));
+						selected_item.data('associated-option').prop('selected', false);
+					} else {
+						selected_item.addClass(css_class('active'));
+						selected_item.data('associated-option').prop('selected', true);
+					}
+
+				}
 
 				// Trigger the change event 
 				select.trigger('change');
@@ -217,21 +233,23 @@
 			function close_dropdown(skip_animation) {
 				skip_animation = skip_animation || false;
 
-				if (skip_animation) {
-					containers.dropdown_container.stop().hide();
+				if (!is_multiple(select_element)) {
+					if (skip_animation) {
+						containers.dropdown_container.stop().hide();
+					}
+
+					containers.outer_container.addClass(css_class('closing'))
+
+					containers.dropdown_container
+						.stop()
+						.slideUp(options.animation_duration, function () {
+							containers.outer_container
+								.removeClass(css_class('closing'))
+								.removeClass(css_class('opened'));
+						});
+					
+					stop_keyboard_monitoring();
 				}
-
-				containers.outer_container.addClass(css_class('closing'))
-
-				containers.dropdown_container
-					.stop()
-					.slideUp(options.animation_duration, function () {
-						containers.outer_container
-							.removeClass(css_class('closing'))
-							.removeClass(css_class('opened'));
-					});
-				
-				stop_keyboard_monitoring();
 			}
 			
 			function open_dropdown() {
@@ -255,9 +273,17 @@
 			select.after(custom_ui);
 
 			// Initialize the custom select box initial state
-			var selected = select.find('option').filter(':selected').slice(0,1);
-			var selected_option = selected.data('associated-item');
-			set_active_option(selected_option);
+			if (!is_multiple(select_element)) {
+				var selected = select.find('option').filter(':selected:not(disabled)').slice(0,1);
+				var selected_option = selected.data('associated-item');
+				set_active_option(selected_option);
+			} else {
+				select.find('option').filter(':selected:not(disabled)').each(function(){
+					set_active_option($(this).data('associated-item'));
+				});
+			}
+
+			select.addClass(css_class('enabled'));
 			
 			/********************/
 			/*  Event handlers  */
@@ -265,8 +291,14 @@
 			
 			// Handle click on the custom options
 			$('li', containers.dropdown_container).on('click', function () {
-				set_active_option($(this));
-				close_dropdown();
+					
+				if (!$(this).hasClass(css_class('disabled'))) {
+					set_active_option($(this));
+				}
+
+				if(!is_multiple(select_element)) {
+					close_dropdown();
+				}
 			});
 
 			// Prevent text selection in the custom select box
@@ -293,8 +325,6 @@
 					close_dropdown()
 				}
 			});
-
-
 
 		});
 	};
