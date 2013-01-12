@@ -10,18 +10,11 @@
 	<script type="text/javascript">
 		$(function() {
 			$('.to-be-replaced').carbonBox({
-				// animation_speed: 100,
-				// namespace: "ex1",
-				// select_container: '<div class="my-cool-container"></div>',
-				option_container: $('<span class="option-container-in-the-li"></span>'),
-				/*
-				filter_item: function (item) {
-					if (item.data('animation_speed')) {};
-					item.prepend("Cool, huh?");
+				render_item: function(option) {
+					var $li = $('<li />');
+					$li.text(option.text());
+					return $li;
 				}
-				*/
-				// optgroup_container: '<span class="optgroup-container-in-the-li"></span>',
-				// use_jScrollPane: true
 			});
 		})
 	</script>

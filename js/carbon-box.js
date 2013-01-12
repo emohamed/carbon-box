@@ -40,6 +40,9 @@
 			// function that can modify each item in the custom drop down before 
 			// showing it 
 			filter_item: $.noop,
+
+			// render item function
+			render_item: false,
 			
 			// Optional HTML fragment that will wrap each entry
 			option_container: $(''),
@@ -110,31 +113,54 @@
 				var dropdown = containers.dropdown;
 
 				// The options in the original select box
-				var select = select.children();
+				var select_children = select.find('option, optgroup');
 
 				for (var i = 0; i < select_children.length; i++) {
 					// The option in the original select box
-					var select_child = $(select_children[i]);
+					var child = $(select_children[i]);
 					// The item in the custom drop down
 					var item = containers.option.clone();
+					
+					// if child is option
+					if (child.is('option')) {
 
-					if (select_child.is('option')) {
-						item.text(select_child.text());
-						item.data('associated-option', select_child);
-						
-						var wrap = options.option_container;
-						if (wrap) {
-							item.carbonWrapUserContainer(wrap);
+						// The option in the original selectbox
+						var child = $(select_children[i]);
+						// The item in the custom dropdown
+						var item = containers.option.clone();
+
+						// if the render functions is overwritten
+						if ($.isFunction(options.render_item)) {
+							item = options.render_item(child);
+						} else {
+							item.text(child.text());
 						}
-						options.filter_item(item);
-						
+
+						// save the option as data
+						item.data('associated-option', child);
+
+						// append to the container
 						dropdown.append(item);
-					} else if (select_child.is('optgroup')) {
-						// TODO
-					} else {
-						report_error("Couldn't render option, it's " + 
-							"not `option` or `optgroup` tag", select_child);
+
 					}
+
+					// if (select_child.is('option')) {
+					// 	item.text(select_child.text());
+					// 	item.data('associated-option', select_child);
+						
+					// 	var wrap = options.option_container;
+					// 	if (wrap) {
+					// 		item.carbonWrapUserContainer(wrap);
+					// 	}
+					// 	options.filter_item(item);
+						
+					// 	dropdown.append(item);
+					// } else if (select_child.is('optgroup')) {
+					// 	// TODO
+					// } else {
+					// 	report_error("Couldn't render option, it's " + 
+					// 		"not `option` or `optgroup` tag", select_child);
+					// }
 				};
 
 				// Build the HTML structure of the new element
@@ -244,12 +270,7 @@
 
 		});
 	};
-	// Small helper for wraping elements with user supplied HTML 
-	// template elements.
-	$.fn.carbonWrapUserContainer = function (template_element) {
-		$(this).wrapInner(template_element.clone(true));
-	}
-
+	// Small helpers
 	function validate_options(options) {
 		var errors = [];
 		for (var option in options) {
