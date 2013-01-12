@@ -86,8 +86,7 @@
 				dropdown_container: $('<div class="' + css_class('dd-cont') + '"></div>'),
 				dropdown: $('<ul class="' + css_class('dropdown') + '"></ul>'),
 				option: $('<li class="' + css_class('option') + '"></li>'),
-
-				mobile_wrap: $("<div class="' + css_class('mobile') + '" style="width: ' + select_width + 'px;" />")
+				mobile_wrap : $('<div class="' + css_class('mobile') + '" style="width:' + select_width + 'px;" />')
 			}
 
 			if(is_mobile()) {
