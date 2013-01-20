@@ -69,6 +69,8 @@
 			var current_active_item = null;
 			var select_width = parseInt($(select_element).css('width'));
 			var arrow_width = parseInt($('.crb-arrow').css('width')) + 4;
+			// Buffer string containg the search phrase for the select box upon opening it; 
+			var keyboard_search_phrase = '';
 			
 			var ns = 'crb-', user_ns = options.namespace;
 
@@ -239,10 +241,42 @@
 				var focused_class = css_class('focused');
 				
 				// Remove the focus from other items
-				all_items.removeClass(focused_class);
+				var old_focused = all_items.filter('.' + focused_class);
+				old_focused.removeClass(focused_class);
 
 				// Focus the element
 				item.addClass(focused_class);
+				
+				var item_top = item.position().top;
+				var item_pos = {
+					top: item_top,
+					bottom: item_top + item.height()
+				}
+
+				var dd_cont_top = containers.dropdown_container.scrollTop();
+				var pane_pos = {
+					top: dd_cont_top,
+					bottom: dd_cont_top + containers.dropdown_container.height()
+				}
+
+				var item_top_in_bounds = (pane_pos.top < item_pos.top && item_pos.top < pane_pos.bottom);
+				var item_bottom_in_bounds = (pane_pos.top < item_pos.bottom && item_pos.bottom < pane_pos.bottom);
+				
+				if (item_top_in_bounds && item_bottom_in_bounds) {
+					console.log("The item is currently visible ... nothing to do. ");
+				} else if (!item_top_in_bounds) {
+					console.log("The top bound is no visible ... . ");
+				} else if (!item_bottom_in_bounds) {
+					console.log("The bottom bound is no visible ... . ");
+				} else {
+					console.log("This shouldn't happen, I think");
+				}
+				var old_focused_item_index = all_items.index(old_focused);
+				var new_focused_item_index = all_items.index(item);
+
+				// var dd_cont = ;
+				// if (item.position().top) {};
+				// console.log();
 			}
 
 			// Jumps between select box options. 
@@ -298,6 +332,34 @@
 				return false;
 			}
 
+			var reset_search_phrase_timeout = null,
+				// the milliseconds allocated for delay between keystrokes
+				// while the user is typing
+				reset_search_delay = 250;
+			function init_keyboard_search(character) {
+				clearTimeout(reset_search_phrase_timeout);
+				// remaining keys should initiate a keyboard search
+				keyboard_search_phrase += character.toLowerCase();
+				
+				for (var i = 0; i < all_items.length; i++) {
+					var item = all_items.eq(i);
+					
+					if (item.is(expand_css_class('disabled'))) {
+						continue; 
+					}
+
+					var item_text = $.trim(item.text().toLowerCase());
+					if (item_text.indexOf(keyboard_search_phrase) === 0) {
+						set_focused_item(item);
+						break;
+					}
+				}
+
+				reset_search_phrase_timeout = setTimeout(function () {
+					keyboard_search_phrase = '';
+				}, reset_search_delay);
+
+			};
 			
 			function keydown_callback(event) {
 				var interesting_keycodes = {
@@ -314,55 +376,43 @@
 					tab: 9
 				}
 				var key_code = event.keyCode;
-				switch (event.keyCode) {
+				switch (key_code) {
 					case interesting_keycodes.key_down: return move_to_item('down', 1);
 					case interesting_keycodes.key_up: return move_to_item('up', 1);
 					
-					case interesting_keycodes.home: return move_to_item('up', all_items.length);
-					case interesting_keycodes.end: return move_to_item('down', all_items.length);
+					// Home and end are changing the focused item to
+					// the first / last not disabled item
+					case interesting_keycodes.home:
+						return move_to_item('up', all_items.length);
+					case interesting_keycodes.end:
+						return move_to_item('down', all_items.length);
 					
 					case interesting_keycodes.page_up:
 						break;
-
 					case interesting_keycodes.page_down:
 						break;
 
 					case interesting_keycodes.tab:
 					case interesting_keycodes.enter:
+						// The focused element should be actually selected
 						var currently_focused = all_items.filter(expand_css_class('focused'));
 						set_active_option(currently_focused);
 						close_dropdown();
 						break;
-
 					
-					default: 
-						// console.log("nothing to do ... ");
+					default:
+						var character = String.fromCharCode(key_code);
+						init_keyboard_search(character); 
+						
 				}
-			}
-			var search_phrase = '';
-			function keypress_callback(event) {
-				var interesting_keycodes = {
-					key_a: 65,
-					key_z: 90,
-					digit_0: 96,
-					digit_9: 105
-				};
-				var _char = String.fromCharCode(event.keyCode);
-				search_phrase += _char;
-				// setTimeout(function () {
-				// 	alert("performing ")
-				// })
 			}
 
 			function start_keyboard_monitoring() {
 				$(document).on('keydown', 'body', keydown_callback);
-				$(document).on('keypress', 'body', keypress_callback);
 			}
 
 			function stop_keyboard_monitoring() {
 				$(document).off('keydown', 'body', keydown_callback);
-				$(document).off('keypress', 'body', keypress_callback);
-				search_phrase = '';
 			}
 
 			function close_dropdown(skip_animation) {
