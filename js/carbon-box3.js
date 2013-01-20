@@ -48,6 +48,9 @@
 		// function which will override the default render
 		render_item: null,
 
+		// layout for multiple selectboxes
+		multiple_layout: 'dropdown',
+
 		// mobile detection
 		is_mobile: function(){
 			var ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -61,29 +64,23 @@
 
 	// validator for options object
 	Helper.validate = function(options){
-
-		// variables
 		var errors = [];
-
 		for (var option in options) {
 			if (/container$/.test(option) && typeof options[option].jquery == "undefined") {
 				errors.push("Option " + option + " must be a jQuery object!");
 			}
 		}
-
 		return errors;
-	};
+	}
 
 	// report method for errors & messages
 	Helper.report = function(message, element){
-
 		if (typeof "console" != "undefined") {
 			console.log("carbonBox error: " + message);
 			if (element) {
 				console.log(element);
 			}
 		}
-
 	}
 
 	// check for the multiple select
@@ -98,15 +95,11 @@
 
 	// css classes builder
 	Helper.css_classes = function(className, namespace, user_namespace){
-
 		var classes = [namespace + className];
-
 		if (user_namespace) {
 			classes.push(user_namespace + className);
 		}
-
 		return classes.join(" ");
-
 	}
 
 	// css classes expander
@@ -289,7 +282,7 @@
 		if (!this.has_size && !this.is_mobile){
 			$container.addClass(Helper.css_classes("default", this.ns, this.user_ns));
 			$container.append($inner, $dropdown);
-		} else if (this.has_size && !this.is_mobile){
+		} else if (this.has_size && !this.is_mobile || this.config.multiple_layout == "box"){
 			$container.addClass(Helper.css_classes("box", this.ns, this.user_ns));
 			$container.append($dropdown);
 		} else if (!this.has_size && this.is_mobile) {
@@ -420,6 +413,25 @@
 			// this._stop_keyboard_monitoring();
 
 		}
+
+	}
+
+	// CarbonBox - Set Active
+	CarbonBox.prototype._set_active = function(item){
+
+		// save the object reference
+		var that = this;
+
+		// variables
+		var templates = this.templates,
+			$container = templates['container'];
+
+		// check the element
+		if (!item.length) {
+			return;
+		}
+
+
 
 	}
 
