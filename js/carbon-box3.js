@@ -36,6 +36,9 @@
 		// what will be the transition
 		transition: "slide",
 
+		// layout the selectbox
+		layout: "dropdown",
+
 		// optional name space for all classes of the select box
 		namespace: false,
 
@@ -48,8 +51,8 @@
 		// function which will override the default render
 		render_item: null,
 
-		// layout for multiple selectboxes
-		multiple_layout: 'dropdown',
+		// if select needs to be multiple
+		is_multiple: false,
 
 		// mobile detection
 		is_mobile: function(){
@@ -83,18 +86,8 @@
 		}
 	}
 
-	// check for the multiple select
-	Helper.is_multiple = function(element){
-		return "multiple" in element.attributes;
-	}
-
-	// check for the size attribute in select
-	Helper.has_size = function(element){
-		return "size" in element.attributes;
-	}
-
 	// css classes builder
-	Helper.css_classes = function(className, namespace, user_namespace){
+	Helper.css_class = function(className, namespace, user_namespace){
 		var classes = [namespace + className];
 		if (user_namespace) {
 			classes.push(user_namespace + className);
@@ -103,13 +96,13 @@
 	}
 
 	// css classes expander
-	Helper.expand_css_classes = function(className, namespace){
+	Helper.expand_class = function(className, namespace){
 		return "." + namespace + className;
 	}
 
 	// tag builder
 	Helper.tag_builder = function(tag, key, namespace, user_namespace) {
-		return $("<"+ tag +"/>", { "class": Helper.css_classes(key, namespace, user_namespace) });
+		return $("<"+ tag +"/>", { "class": Helper.css_class(key, namespace, user_namespace) });
 	}
 
 	// ---- CarbonBox Class ---- //
@@ -128,22 +121,25 @@
 		// save the object reference
 		var that = this;
 
-		// variables
-		var select, $select, config, templates, ns = "crb-", user_ns;
+		var templates,
+			uns,
+			ns = "crb-",
+			select,
+			$select;
+
 
 		// save the references
 		this.select = select = element;
-		this.config = config = $.extend(defaults, options);
-		this.user_ns = user_ns = this.config.namespace;
-		this.is_multiple = Helper.is_multiple(element);
-		this.has_size = Helper.has_size(element);
-		this.is_mobile = config.is_mobile();
-		this.ns = ns;
 		this.$select = $select = $(element);
-		this.$childrens = $select.find("option, optgroup");
+		this.config = $.extend({}, defaults, options);
+		this.ns = ns;
+		this.uns = uns = this.config.namespace;
+		this.multiple = this.config.is_multiple;
+		this.mobile = this.config.is_mobile();
+		this.$childs = $select.find("option, optgroup");
 
 		// handle initialization errors early
-		var init_errors = Helper.validate(config);
+		var init_errors = Helper.validate(this.config);
 
 		if (init_errors.length != 0) {
 			for(var i = 0; i < init_errors.length; i++) {
@@ -160,7 +156,7 @@
 		// define templates
 		this.templates = templates = {};
 
-		var template_tags = ["container", "inner", "head", "active", "arrow", "icon", "dropdown", "list", "option", "optgroup"];
+		var template_tags = ["container", "head", "current", "arrow", "icon", "dropdown", "list", "option", "optgroup"];
 
 		// generate templates
 		$.each(template_tags, function(index, value){
@@ -177,7 +173,7 @@
 				break;
 			}
 
-			templates[value] = Helper.tag_builder(tagName, value, ns, user_ns);
+			templates[value] = Helper.tag_builder(tagName, value, ns, uns);
 
 		});
 
@@ -193,10 +189,10 @@
 		var templates = this.templates,
 			render = this.config.render_item,
 			$list = templates["list"],
-			$childrens = this.$childrens;
+			$childs = this.$childs;
 
 		// loop the children"s
-		$childrens.each(function(){
+		$childs.each(function(){
 
 			// variables
 			var $this = $(this), item;
@@ -208,20 +204,20 @@
 				// if the render function is overwritten
 				if ($.isFunction(render)) {
 					item = render($this);
-					item.addClass(Helper.css_classes("option", that.ns, that.user_ns));
+					item.addClass(Helper.css_class("option", that.ns, that.uns));
 				} else {
 					item.text($this.text());
 				}
 
 				// check for disabled option
 				if ($this.is(":disabled")) {
-					item.addClass(Helper.css_classes("disabled", that.ns, that.user_ns));
+					item.addClass(Helper.css_class("disabled", that.ns, that.uns));
 					item.attr("data-disabled", "true");
 				}
 
 				// check for optgroup parent
 				if ($this.parent("optgroup").length) {
-					item.addClass(Helper.css_classes("optgroup-child", that.ns, that.user_ns));
+					item.addClass(Helper.css_class("optgroup-child", that.ns, that.uns));
 				}
 
 				// save the option & data as data
@@ -259,43 +255,41 @@
 		// variables
 		var templates = this.templates,
 			$container = templates["container"],
-			$inner = templates["inner"],
 			$head = templates["head"],
 			$dropdown = templates["dropdown"],
 			$list = templates["list"],
 			$arrow = templates["arrow"],
 			$icon = templates["icon"],
-			$active = templates["active"];
+			$current = templates["current"];
 
 		// build the dropdown list
-		if (!this.is_mobile) {
+		if (!this.mobile) {
 			this._build_list();
 			$dropdown.append($list);
 		}
 
 		// append some of structure
 		$arrow.append($icon);
-		$head.append($active, $arrow);
-		$inner.append($head, $arrow);
+		$head.append($current, $arrow);
 
 		// build the html structure of the new element
-		if (!this.has_size && !this.is_mobile){
-			$container.addClass(Helper.css_classes("default", this.ns, this.user_ns));
-			$container.append($inner, $dropdown);
-		} else if (this.has_size && !this.is_mobile || this.config.multiple_layout == "box"){
-			$container.addClass(Helper.css_classes("box", this.ns, this.user_ns));
+		if (this.config.layout == "dropdown" && !this.mobile){
+			$container.addClass(Helper.css_class("default", this.ns, this.uns));
+			$container.append($head, $dropdown);
+		} else if (this.config.layout == "box"){
+			$container.addClass(Helper.css_class("box", this.ns, this.uns));
 			$container.append($dropdown);
-		} else if (!this.has_size && this.is_mobile) {
-			$container.addClass(Helper.css_classes("mobile", this.ns, this.user_ns));
+		} else if (this.config.layout == "dropdown" && this.is_mobile) {
+			$container.addClass(Helper.css_class("mobile", this.ns, this.uns));
 		}
 
 		// replace the selectbox
-		if(this.is_mobile) {
+		if(this.mobile) {
 			this.$select.wrap($container);
-			this.$select.after($inner);
+			this.$select.after($head);
 		} else {
 			this.$select.hide().after($container);
-			this.all_items = $container.find(Helper.expand_css_classes("option", this.ns))
+			this.all_items = $container.find(Helper.expand_class("option", this.ns))
 		}
 
 	}
@@ -308,16 +302,24 @@
 
 		// variables
 		var $container = this.templates["container"],
-			$inner = this.templates["inner"],
+			$head = this.templates["head"],
 			$dropdown = this.templates["dropdown"];
 
 		// handle click on the custom options
 		$container.on("click", "li", function(){
 
+			if (!$(this).hasClass(Helper.css_class("disabled", that.ns, that.uns))) {
+				that._set_active($(this));
+			}
+
+			if (!that.multiple && that.config.layout == "dropdown" && !$(this).hasClass(Helper.css_class("disabled", that.ns, that.uns))) {
+				that._close_dropdown();
+			}
+			
 		});
 
 		// handle click on the selectbox head
-		$inner.on("click", function(){
+		$head.on("click", function(){
 
 			if ($dropdown.is(":visible")) {
 				that._close_dropdown();
@@ -350,7 +352,7 @@
 			animationType = "";
 
 		// add opening class
-		$container.addClass(Helper.css_classes("opening", this.ns, this.user_ns));
+		$container.addClass(Helper.css_class("opening", this.ns, this.uns));
 
 		// set the animation type
 		switch(this.config.transition) {
@@ -366,8 +368,8 @@
 
 		// show the dropdown
 		$dropdown.stop()[animationType](this.config.transition_duration, function(){
-			$container.removeClass(Helper.css_classes("opening", that.ns, that.user_ns))
-			$container.addClass(Helper.css_classes("opened", that.ns, that.user_ns))
+			$container.removeClass(Helper.css_class("opening", that.ns, that.uns))
+			$container.addClass(Helper.css_class("opened", that.ns, that.uns))
 		});
 
 		// start keyboard monitoring
@@ -386,7 +388,7 @@
 			$dropdown = this.templates["dropdown"],
 			animationType = "";
 
-		if (!this.is_multiple) {
+		if (this.config.layout == "dropdown") {
 
 			// set the animation type
 			switch(this.config.transition) {
@@ -401,12 +403,12 @@
 			} 
 
 			// add closing class
-			$container.addClass(Helper.css_classes("closing", this.ns, this.user_ns));
+			$container.addClass(Helper.css_class("closing", this.ns, this.uns));
 
 			// hide the dropdown
 			$dropdown.stop()[animationType](this.config.transition_duration, function(){
-				$container.removeClass(Helper.css_classes("closing", that.ns, that.user_ns))
-				$container.removeClass(Helper.css_classes("opened", that.ns, that.user_ns))
+				$container.removeClass(Helper.css_class("closing", that.ns, that.uns))
+				$container.removeClass(Helper.css_class("opened", that.ns, that.uns))
 			});
 
 			// stop keyboard monitoring
@@ -424,14 +426,22 @@
 
 		// variables
 		var templates = this.templates,
-			$container = templates['container'];
+			$container = templates['container'],
+			$current = templates['current'],
+			$list = templates['list'];
 
 		// check the element
 		if (!item.length) {
 			return;
 		}
 
-
+		// if select is not multiple and is a dropdown 
+		if (this.config.layout == "dropdown" && !this.multiple) {
+			item.data('associated-option').prop('selected', true);
+			item.addClass(Helper.css_class('active', this.ns, this.uns));
+			$current.text(item.text());
+			$list.find('li').not(item).removeClass(Helper.css_class('active', this.ns, this.uns));
+		} else 
 
 	}
 

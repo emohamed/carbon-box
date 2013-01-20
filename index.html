@@ -9,12 +9,27 @@
 	
 	<script type="text/javascript">
 		$(function() {
-			$('.to-be-replaced').carbonBox({
+			$('.to-be-replaced:not(.to-be-multiple)').carbonBox({
 				render_item: function(option) {
 					var $li = $('<li />');
 					$li.text(option.text());
 					return $li;
 				},
+				animation_duration: 500,
+				transition: 'fade'
+				// namespace: "ex1",
+				// select_container: '<div class="my-cool-container"></div>',
+				// option_container: $('<span class="option-container-in-the-li"></span>'),
+			});
+
+			$('.to-be-multiple').carbonBox({
+				render_item: function(option) {
+					var $li = $('<li />');
+					$li.text(option.text());
+					return $li;
+				},
+				is_multiple: true,
+				layout: "box",
 				animation_duration: 500,
 				transition: 'fade'
 				// namespace: "ex1",
@@ -352,7 +367,7 @@
 					</select>
 				</td>
 				<td>
-					<select class="multiple-example to-be-replaced" multiple size="3">
+					<select class="multiple-example to-be-replaced to-be-multiple" multiple size="3">
 						<option selected>opt 1</option>
 						<option selected>opt 2</option>
 						<option disabled>opt 3</option>
