@@ -41,7 +41,6 @@
  		on_show: false,
  		on_hide: false,
  		on_change: false,
- 		render_current: false,
  		render_option: false,
  		render_optgroup: false,
  		is_mobile: function(){
@@ -71,7 +70,11 @@
  		this.is_multiple = this.check_multiple(element);
  		this.is_mobile = this.config.is_mobile();
  		this.is_disabled = this.check_disable(element);
- 		this.$childs = $select.find('option, optgroup');
+ 		this.$children = $select.find('option, optgroup');
+ 		this.search_timeout = null;
+ 		this.search_delay = 250;
+ 		this.search_phrase = '';
+ 		this.current_active = null;
 
  		// handle initialization erros early
  		var init_errors = this.validate(this.config);
@@ -89,7 +92,7 @@
  			return;
  		}
 
- 		// build containers
+ 		// build the containers
  		this.containers = containers = {};
 
  		var keys = ['container', 'head', 'current', 'button', 'arrow', 'dropdown', 'list', 'option', 'optgroup'];
@@ -97,7 +100,7 @@
  		for (var i=0; i < keys.length; i++) {
  			var tag_name = 'div';
 
- 			switch(keys[i]) {
+ 			switch (keys[i]) {
  				case 'list':
  					tag_name = 'ul';
  				break;
@@ -119,8 +122,18 @@
  		this.replace_selectbox();
  		this.bind_events();
 
- 		// preserve chainability of the plugin
- 		return this;
+ 		// setup selected item
+ 		if (!this.is_multiple && this.config.layout == 'dropdown') {
+ 			var selected = $select.find('option:selected:not(:disabled)');
+ 			var option = selected.data('associated-item');
+ 			this.set_active(option);
+ 		}
+ 		else if (this.is_multiple) {
+ 			var all_selected = $select.find('option:selected:not(:disabled)');
+ 			all_selected.each(function(){
+ 				constructor.set_active($(this).data('associated-item'));
+ 			});
+ 		}
  	};
 
  	// the build list method
@@ -128,8 +141,8 @@
  		// save the constructor reference
  		var constructor = this;
  		
- 		// loop the select childrens
- 		this.$childs.each(function(){
+ 		// loop the select children
+ 		this.$children.each(function(){
 
  			// shortcut variables
  			var $this = $(this),
@@ -174,9 +187,6 @@
  			constructor.containers['list'].append($item);
 
  		});	
-
- 		// preserve chainability of the plugin
- 		return this;
  	};
 
  	// the replace selectbox method
@@ -199,7 +209,7 @@
 
  		// build the head structure
  		$button.append($arrow);
- 		$head.append($current, $arrow);
+ 		$head.append($button, $current);
 
  		// build the entire structure
  		if (this.config.layout == 'dropdown' && !this.is_mobile && this.config.append_to == 'container') {
@@ -225,7 +235,7 @@
  			$head.insertAfter(this.$select);
  		} 
  		else {
- 			//this.$select.hide();
+ 			this.$select.hide();
  			$container.insertAfter(this.$select);
  		} 
 
@@ -236,9 +246,6 @@
 
  		// save reference to all items
  		this.$all_items = $container.find(this.expand_class('option'));
-
- 		// preserve chainability of the plugin
- 		return this;
  	};
 
  	// the bind events method
@@ -261,13 +268,13 @@
  		});
 
  		// handle mouseover/mouseleave events on selectbox items
- 		this.containers['list'].on('mouseenter mouseleave', 'li', function(){
+ 		this.containers['list'].on('mouseenter mouseleave', 'li:not('+ this.expand_class('optgroup') +')', function(){
  			var $this = $(this);
  			$this.toggleClass(constructor.build_class('focused'), $this.hasClass(constructor.build_class('focused')));
  		});
 
  		// handle click event on selectbox items
- 		this.containers['list'].on('click', 'li', function(){
+ 		this.containers['list'].on('click', 'li:not('+ this.expand_class('optgroup') +')', function(){
  			var $this = $(this);
 
  			if (!$this.hasClass(constructor.build_class('disabled')) && !$this.hasClass(constructor.build_class('optgroup'))) {
@@ -277,13 +284,10 @@
 
  		// close the dropdown when clicking out of the selectbox container
  		$doc.on('click', function(evt){
- 			if (!$(evt.target).closest(constructor.containers['container']).length) {
+ 			if (!$(evt.target).closest(constructor.containers['container']).length && constructor.containers['dropdown'].is(':visible') && constructor.config.layout == 'dropdown') {
  				constructor.close_dropdown();
  			}
  		});
-
- 		// preserve chainability of the plugin
- 		return this;
  	};
 
  	// the open dropdown method
@@ -297,7 +301,7 @@
  		this.containers['container'].addClass(this.build_class('opening'));
 
  		// set the transition type
- 		switch(this.config.transition) {
+ 		switch (this.config.transition) {
  			case 'slide':
  				transition_type = 'slideDown';
  			break;
@@ -322,11 +326,7 @@
  			constructor.containers['container'].addClass(constructor.build_class('opened'));
  		});
 
- 		// TODO - keyboard monitoring - start
- 		// this.start_keyboard_monitoring();
-
- 		// preserve chainability of the plugin
- 		return this;
+ 		this.start_keyboard_monitoring();
  	};
 
  	// the close dropdown method 
@@ -341,7 +341,7 @@
 	 		this.containers['container'].addClass(this.build_class('closing'));
 
 	 		// set the transition type
-	 		switch(this.config.transition) {
+	 		switch (this.config.transition) {
 	 			case 'slide':
 	 				transition_type = 'slideUp';
 	 			break;
@@ -364,11 +364,7 @@
 	 		});
 	 	}
 
- 		// TODO - keyboard monitoring - stop
- 		// this.stop_keyboard_monitoring();
-
- 		// preserve chainability of the plugin
- 		return this;
+ 		this.stop_keyboard_monitoring();
  	};
 
  	// the set active method
@@ -377,28 +373,224 @@
  			return;
  		}
 
+ 		var new_value = '';
+
  		if (!this.is_multiple) {
 	 		item.data('associated-option').prop('selected', true);
 	 		item.addClass(this.build_class('active'));
 	 		item.siblings('li').removeClass(this.build_class('active'));
 			
-			if ($.isFunction(this.config.render_current)){
-				var value = this.config.render_current(item);
-				this.containers['current'].html(value);
-			} 
-			else {
-				this.containers['current'].html(item.text());
-			}
+			new_value = item.html();
+			this.current_active = item;
 
 			this.close_dropdown();
  		}
  		else {
  			item.toggleClass(this.build_class('active'));
  			item.data('associated-option').prop('selected', item.hasClass(this.build_class('active')));
+
+ 			new_value = [];
+ 			this.$all_items.filter(this.expand_class('active')).each(function(){
+ 				new_value.push($(this).html());
+ 			});
  		}
 
- 		// preserve chainability of the plugin
- 		return this;
+ 		// convert new_value to string
+ 		if ($.isArray(new_value)) {
+ 			new_value = new_value.join(', ');
+ 		}
+
+ 		this.containers['current'].html(new_value);
+
+ 		//TODO - how exactly set value to select 
+ 	};
+
+ 	// the keyboard monitoring method - start
+ 	CarbonBox.prototype.start_keyboard_monitoring = function(){
+ 		$doc.on('keydown', 'body', this, this.keydown_callback);
+ 	};
+
+ 	// the keyboard monitoring method - stop
+ 	CarbonBox.prototype.stop_keyboard_monitoring = function(){
+ 		$doc.off('keydown', 'body', this.keydown_callback);
+ 	};
+
+ 	// the keydown callback
+ 	CarbonBox.prototype.keydown_callback = function(event){
+ 		var constructor = event.data;
+ 		var codes = {
+ 			key_down: 40,
+ 			key_up: 38,
+ 			home: 36,
+ 			end: 35,
+ 			page_up: 33,
+ 			page_down: 34,
+ 			esc: 27,
+ 			enter: 13,
+ 			tab: 9
+ 		}
+
+ 		var key_code = event.keyCode;
+
+ 		switch (key_code) {
+ 			case codes['key_down']:
+ 				return constructor.move_to_item('down', 1);
+
+ 			case codes['key_up']:
+ 				return constructor.move_to_item('up', 1);
+
+ 			case codes['home']:
+ 				return constructor.move_to_item('up', constructor.$all_items.length);
+
+ 			case codes['end']:
+ 				return constructor.move_to_item('down', constructor.$all_items.length);
+
+ 			case codes['page_up']:
+ 			break;
+ 			case codes['page_down']:
+ 			break;
+
+ 			case codes['tab']:
+ 			case codes['enter']:
+ 				var focused = constructor.$all_items.filter(constructor.expand_class('focused'));
+ 				constructor.set_active(focused);
+ 				constructor.close_dropdown();
+ 			break;
+
+ 			case codes['esc']:
+ 				constructor.close_dropdown();
+ 			break;
+
+ 			default: 
+ 				var character = String.fromCharCode(key_code);
+ 				constructor.init_keyboard_search(character);
+ 		}
+ 	};
+
+ 	// the move item method
+ 	CarbonBox.prototype.move_to_item = function(direction, step_size){
+ 		var current_index,
+ 			focused = this.$all_items.filter(this.expand_class('focused'));
+
+ 		// determine the current index
+ 		if (focused.length) {
+ 			current_index = this.$all_items.index(focused);
+ 		}
+ 		else {
+ 			current_index = this.$all_items.index(this.current_active);
+ 		}
+
+ 		// setup the factor
+ 		var factor = direction == 'up' ? -1 : 1;
+
+ 		// calculate the target index
+ 		var target_index = current_index + step_size * factor;
+
+ 		// negative indexes aren't allowed
+ 		target_index = Math.max(target_index, 0);
+
+ 		// indexes bigger than items count aren't allowed 
+ 		target_index = Math.min(target_index, this.$all_items.length - 1);
+
+ 		// get the target item
+ 		var target_item = this.$all_items.eq(target_index);
+
+ 		if (target_item.hasClass(this.build_class('disabled'))) {
+ 			var is_last_item = target_item.is(':last');
+ 			var is_first_item = target_item.is(':first');
+ 			var active_items_selector = ':not(' + this.expand_class('disabled') + ')';
+
+ 			if (direction == 'down' && is_last_item) {
+ 				var last_active = this.$all_items.filter(active_items_selector + ':last');
+ 				this.set_focused_item(last_active);
+ 			}
+ 			else if (direction == 'up' && is_first_item) {
+ 				var first_active = this.$all_items.filter(active_items_selector + ':first');
+ 				this.set_focused_item(first_active);
+ 			}
+ 			else {
+ 				this.move_to_item(direction, step_size + 1);
+ 			}
+ 		} 
+ 		else {
+ 			this.set_focused_item(target_item);
+ 		}
+
+ 		return false;
+ 	};
+
+ 	// the set focused item method
+ 	CarbonBox.prototype.set_focused_item = function(item){
+ 		// save the constructor reference
+ 		var constructor = this;
+
+ 		if (!item.length) {
+ 			return;
+ 		}
+
+ 		var focused_class = this.build_class('focused');
+
+ 		// remove the focus from the siblings
+ 		var old_focused = this.$all_items.filter('.' + focused_class);
+ 		old_focused.removeClass(focused_class);
+
+ 		// focus the element
+ 		item.addClass(focused_class);
+
+ 		var item_top = item.position().top;
+ 		var item_pos = {
+ 			top: item_top,
+ 			bottom: item_top + item.height()
+ 		}
+
+ 		var dropdown_top = this.containers['dropdown'].scrollTop();
+ 		var pane_pos = {
+ 			top: dropdown_top,
+ 			bottom: dropdown_top + constructor.containers['dropdown'].height()
+ 		}
+
+ 		var item_top_in_bounds = (pane_pos.top < item_pos.top && item_pos.top < pane_pos.bottom);
+ 		var item_bottom_in_bounds = (pane_pos.top < item_pos.bottom && item_pos.bottom < pane_pos.bottom);
+
+ 		if (item_top_in_bounds && item_bottom_in_bounds) {
+			console.log("The item is currently visible ... nothing to do. ");
+		} else if (!item_top_in_bounds) {
+			console.log("The top bound is no visible ... . ");
+		} else if (!item_bottom_in_bounds) {
+			console.log("The bottom bound is no visible ... . ");
+		} else {
+			console.log("This shouldn't happen, I think");
+		}
+ 	};
+
+ 	// the search method
+ 	CarbonBox.prototype.init_keyboard_search = function(character){
+ 		// save the constructor reference
+ 		var constructor = this;
+
+ 		// clear timeout 
+ 		clearTimeout(this.search_timeout);
+
+ 		// remaining keys should initiate a keyboard search
+ 		this.search_phrase += character.toLowerCase();
+
+ 		for (var i = 0; i < this.$all_items.length; i++) {
+ 			var item = this.$all_items.eq(i);
+
+ 			if (item.is(this.expand_class('disabled'))) {
+ 				continue;
+ 			}
+
+ 			var item_text = $.trim(item.text().toLowerCase());
+ 			if (item_text.indexOf(this.search_phrase) == 0) {
+ 				this.set_focused_item(item);
+ 				break;
+ 			}
+ 		}
+
+ 		this.search_timeout = setTimeout(function(){
+ 			constructor.search_phrase = '';
+ 		}, this.search_delay);
  	};
 
  	// --------------- //
