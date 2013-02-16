@@ -239,6 +239,12 @@
 		}
 	};
 
+	// Returns items from the custom UI that meet some
+	// requirement(e.g. active, enabled etc.)  
+	CarbonBox.prototype.getItems = function (type) {
+		return this.$allItems.filter('.' + this.cssClass(type, false));
+	}
+
 	// method - bind all events
 	CarbonBox.prototype.bindEvents = function(){
 		// cache the constructor reference
@@ -280,6 +286,7 @@
 			}
 		});
 
+
 		this.$el.on('change', function(){
 			if (self.isMobile && self.config.layout == 'dropdown') {
 				var items = $(this).find(':selected');
@@ -295,7 +302,25 @@
 					self.containers['current'].html('');
 				}
 			}
-		})
+		});
+
+		// self.$el.closest('form').on('reset', function() {
+		// 	// The callback is called before the actual form reset. So, delaying the
+		// 	// change event a little is needed in order to get the new value of the field. 
+		// 	setTimeout(function () {
+		// 		self.$el.trigger('change');
+		// 	}, 10);
+		// });
+		// // Make sure that changes to the original select are applied to
+		// // the carbon UI
+		// self.$el.on('change', function() {
+		// 	var slected_index = this.selectedIndex;
+		// 	var selected_item = $(this).find('option:eq(' + slected_index + ')').data('associated-item');
+		// 	if (!selected_item.hasClass('.' + self.cssClass('active'), false)) {
+		// 		self.setActive(selected_item);
+
+		// 	}
+		// })
 	};
 
 	// method - set active
@@ -323,7 +348,7 @@
 			
 			if (this.config.layout == 'dropdown') {
 				newValue = [];
-				this.$allItems.filter('.' + activeClass).each(function(){
+				this.getItems(activeClass).each(function(){
 					newValue.push($(this).html());
 				});
 			} 
@@ -438,10 +463,10 @@
 	CarbonBox.prototype.moveToItem = function(direction, step){
 		// cache the constructor reference
 		var self = this;
-
+		
 		var currentIndex,
-			focused = this.$allItems.filter('.' + this.cssClass('focused', false)),
-			currentActive = this.$allItems.filter('.' + this.cssClass('active', false));
+			focused = this.getItems('focused'),
+			currentActive = this.getItems('active');
 
 		// determine the current index
 		if (focused.length) {
@@ -462,10 +487,16 @@
 		// indexes bigger than items count are not allowed
 		targetIndex = Math.min(targetIndex, this.$allItems.length - 1);
 
+		if (targetIndex == currentIndex) {
+			return false;
+		}
+
 		// get the target item
 		var targetItem = this.$allItems.eq(targetIndex);
-
-		if (targetItem.hasClass(this.cssClass('disabled', false))) {
+		var target_item_is_disabled = targetItem.hasClass(this.cssClass('disabled', false));
+		if (!target_item_is_disabled) {
+			this.setFocusedItem(targetItem);
+		} else {
 			var isLast  = this.$allItems.index(targetItem) == this.$allItems.length - 1,
 				isFirst = this.$allItems.index(targetItem) == 0,
 				enabledSelector = ':not(.'+ this.cssClass('disabled', false) +')';
@@ -479,10 +510,7 @@
 			} else {
 				this.moveToItem(direction, step + 1);
 			}
-		} else {
-			this.setFocusedItem(targetItem);
 		}
-
 		return false;
 	};
 
@@ -556,7 +584,6 @@
 		// clear the search timeout
 		clearTimeout(this.searchTimeout);
 
-		// remaining keys should initiate a keyboard search
  		this.searchPhrase += character.toLowerCase();
 
  		for (var i = 0; i < this.$allItems.length; i++) {
@@ -609,6 +636,10 @@
 
 			case codes['pageUp']:
 			case codes['pageDown']:
+				var dir = keyCode == codes['pageUp'] ? 'up' : 'down';
+				// Calculate the items count on single "page"
+				var visible_items_count = Math.floor(self.containers.dropdown.height() / self.$allItems.first().outerHeight());
+				return self.moveToItem(dir, visible_items_count);
 			break;
 
 			case codes['tab']:
