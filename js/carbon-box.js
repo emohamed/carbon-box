@@ -461,7 +461,6 @@
 				this.moveToItem(direction, step + 1);
 			}
 		}
-
 		return false;
 	};
 
@@ -587,6 +586,10 @@
 
 			case codes['pageUp']:
 			case codes['pageDown']:
+				var dir = keyCode == codes['pageUp'] ? 'up' : 'down';
+				// Calculate the items count on single "page"
+				var visible_items_count = Math.floor(self.containers.dropdown.height() / self.$allItems.first().outerHeight());
+				return self.moveToItem(dir, visible_items_count);
 			break;
 
 			case codes['tab']:
