@@ -275,6 +275,22 @@
 				self.setActive($(this));
 			}
 		});
+		self.$el.closest('form').on('reset', function() {
+			// The callback is called before the actual form reset. So, delaying the
+			// change event a little is needed in order to get the new value of the field. 
+			setTimeout(function () {
+				self.$el.trigger('change');
+			}, 10);
+		});
+		// Make sure that changes to the original select are applied to
+		// the carbon UI
+		self.$el.on('change', function() {
+			var slected_index = this.selectedIndex;
+			var selected_item = $(this).find('option:eq(' + slected_index + ')').data('associated-item');
+			if (!selected_item.hasClass('.' + self.cssClass('active'), false)) {
+				self.setActive(selected_item);
+			}
+		})
 	};
 
 	// method - set active
