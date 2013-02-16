@@ -333,13 +333,9 @@
 	CarbonBox.prototype.stopKeyboardMonitoring = function(){
 		$doc.off('keydown', 'body', this.keyDownCallback);
 	};
-	var move_to_item_calls_count = 0;
+
 	// method - move to item
 	CarbonBox.prototype.moveToItem = function(direction, step){
-		if (move_to_item_calls_count++ > 150) {
-			throw "Too much recursion";
-		}
-
 		// cache the constructor reference
 		var self = this;
 
