@@ -437,10 +437,16 @@
 		// indexes bigger than items count are not allowed
 		targetIndex = Math.min(targetIndex, this.$allItems.length - 1);
 
+		if (targetIndex == currentIndex) {
+			return false;
+		}
+
 		// get the target item
 		var targetItem = this.$allItems.eq(targetIndex);
-
-		if (targetItem.hasClass(this.cssClass('disabled', false))) {
+		var target_item_is_disabled = targetItem.hasClass(this.cssClass('disabled', false));
+		if (!target_item_is_disabled) {
+			this.setFocusedItem(targetItem);
+		} else {
 			var isLast  = this.$allItems.index(targetItem) == this.$allItems.length - 1,
 				isFirst = this.$allItems.index(targetItem) == 0,
 				enabledSelector = ':not(.'+ this.cssClass('disabled', false) +')';
@@ -454,8 +460,6 @@
 			} else {
 				this.moveToItem(direction, step + 1);
 			}
-		} else {
-			this.setFocusedItem(targetItem);
 		}
 
 		return false;
@@ -531,7 +535,6 @@
 		// clear the search timeout
 		clearTimeout(this.searchTimeout);
 
-		// remaining keys should initiate a keyboard search
  		this.searchPhrase += character.toLowerCase();
 
  		for (var i = 0; i < this.$allItems.length; i++) {
