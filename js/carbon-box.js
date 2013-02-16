@@ -235,6 +235,12 @@
 		this.$allItems = $container.find('.' + this.cssClass('option', false));
 	};
 
+	// Returns items from the custom UI that meet some
+	// requirement(e.g. active, enabled etc.)  
+	CarbonBox.prototype.getItems = function (type) {
+		return this.$allItems.filter('.' + this.cssClass(type, false));
+	}
+
 	// method - bind all events
 	CarbonBox.prototype.bindEvents = function(){
 		// cache the constructor reference
@@ -318,7 +324,7 @@
 
 			if (this.config.layout == 'dropdown') {
 				newValue = [];
-				this.$allItems.filter('.' + activeClass).each(function(){
+				this.getItems(activeClass).each(function(){
 					newValue.push($(this).html());
 				});
 			} 
@@ -429,10 +435,10 @@
 	CarbonBox.prototype.moveToItem = function(direction, step){
 		// cache the constructor reference
 		var self = this;
-
+		
 		var currentIndex,
-			focused = this.$allItems.filter('.' + this.cssClass('focused', false)),
-			currentActive = this.$allItems.filter('.' + this.cssClass('active', false));
+			focused = this.getItems('focused'),
+			currentActive = this.getItems('active');
 
 		// determine the current index
 		if (focused.length) {
