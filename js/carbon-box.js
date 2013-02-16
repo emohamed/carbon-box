@@ -390,7 +390,7 @@
 	// method - set the focused item
 	CarbonBox.prototype.setFocusedItem = function(item){
 		// cache the constructor reference
-		var self = this;
+		var self = this, $head = this.containers['head'];
 
 		if (!item.length) {
 			return;
@@ -400,9 +400,53 @@
 
 		// remove the focused class from the siblings
 		this.$allItems.filter('.' + focusedClass).removeClass(focusedClass);
+		var focused_class = this.cssClass('focused', false);
+		var oldFocused = this.$allItems.filter('.' + focused_class);
+		oldFocused.removeClass(focused_class);
 
 		// focus the element
 		item.addClass(focusedClass);
+		var ddCont = this.containers.dropdown;
+
+		// Calculate the item top position. Note that the pane scorllTop value must be
+		// added to the element position for proper calculations
+		var itemTop = item.position().top + ddCont.scrollTop();
+		var itemPos = {
+			top: itemTop,
+			bottom: itemTop + item.outerHeight()
+		}
+		console.log(itemPos);
+
+		var ddContTop = ddCont.scrollTop();
+		var panePos = {
+			top: ddContTop,
+			bottom: ddContTop + ddCont.outerHeight()
+		}
+
+		var itemTopInBounds = (panePos.top < itemPos.top && itemPos.top < panePos.bottom);
+		var itemBottomInBounds = (panePos.top < itemPos.bottom && itemPos.bottom < panePos.bottom);
+		
+		if (itemTopInBounds && itemBottomInBounds) {
+			return;
+		}
+
+		var oldFocusedItemIndex = this.$allItems.index(oldFocused);
+		var newFocusedItemIndex = this.$allItems.index(item);
+
+		if (oldFocusedItemIndex < newFocusedItemIndex) {
+			// Moving down in the list; should align the item bottom boundary with 
+			// the pane bottom bondary
+			var ddHeight = ddCont.height();
+			var newScrollTop = itemPos.bottom - ddHeight;
+			console.log("Moving pane to " + newScrollTop);
+			ddCont.scrollTop(newScrollTop);
+		} else if(oldFocusedItemIndex > newFocusedItemIndex) {
+			// Moving up in the list; should align the item top boundary with 
+			// the pane top bondary
+			// ddCont.scrollTop(itemPos.top);
+		} else {
+			throw "old focused item should not have the same index as the new focused item";
+		}
 	};
 
 	// method - search
