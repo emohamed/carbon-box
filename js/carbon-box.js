@@ -32,7 +32,7 @@
 	var defaults = {
 		namespace: '',
 		layout: 'dropdown',
-		appendTo: 'container',
+		context: 'container',
 		position: 'auto',
 		transition: 'slide',
 		duration: 500,
@@ -159,7 +159,7 @@
 			$dropdown = this.containers['dropdown'],
 			$list = this.containers['list'],
 			layout = this.config.layout,
-			appendTo = this.config.appendTo;
+			context = this.config.context;
 
 		// build the dropdown list
 		if (!this.isMobile || this.isMobile && layout == 'box') {
@@ -172,29 +172,32 @@
 		$head.append($button, $current);
 
 		// build the structure
-		if (layout == 'dropdown' && !this.isMobile && appendTo == 'container') {
-			$container.addClass(this.cssClass('container-dropdown'));
-			$container.append($head, $dropdown);
-		}
-		else if (layout == 'dropdown' && !this.isMobile && appendTo == 'body') {
-			$container.addClass(this.cssClass('container-dropdown'));
-			$container.append($head);
-			$('body').append($dropdown);
-		}
-		else if (layout == 'box') {
-			$container.addClass(this.cssClass('container-box'));
+		if (layout == 'dropdown') {
+			if (!this.isMobile) {
+				if (context == 'container') {
+					$container.addClass(this.cssClass('container-dropdown'));
+					$container.append($head, $dropdown);
+				} else if (context == 'body') {
+					$container.addClass(this.cssClass('container-dropdown'));
+					$container.append($head);
+					$('body').append($dropdown);
+				} 
+			} else {
+				$container.addClass(this.cssClass('container-mobile'));
+				$container.append($head);
+			}
+		} else if (layout == 'box') {
 			$container.append($dropdown);
-		}
-		else if (layout == 'dropdown' && this.isMobile) {
-			$container.addClass(this.cssClass('container-mobile'));
+			$container.addClass(this.cssClass('container-box'));
+		} else {
+			throw "not possible";
 		}
 
 		// replace the selectbox
 		if (this.isMobile && layout == 'dropdown') {
 			this.$el.wrap($container);
 			$head.insertAfter(this.$el);
-		}
-		else {
+		} else {
 			this.$el.hide();
 			$container.insertAfter(this.$el);
 		}
