@@ -91,14 +91,34 @@
 			this.containers['container'].addClass(this.cssClass('container-disabled'));
 		}
 
-		// replace selectbox & bind events
+		// replace selectbox & bind events & handle selected options
 		this.replaceSelectbox();
 		this.bindEvents();
-
 		this.initState();
 	};
+
 	CarbonBox.prototype.initState = function(){
-		// this.setActive();
+		// cache the constructor reference
+		var self = this;
+		var selected = this.$el.find('[selected]');
+
+		if (!selected.length) {
+			selected = this.$el.find('option:not(:disabled)').first();
+		}
+
+		if (this.isMultiple) {
+			selected.each(function(){
+				self.setActive($(this).data('associated-item'));
+			})
+		} else {
+			var option = selected.first().data('associated-item');
+
+			if (this.isMobile) {
+				this.setActive();
+			} else {
+				this.setActive(option);
+			}
+		}
 	};
 	// method - build custom ui
 	CarbonBox.prototype.buildUI = function(){
@@ -125,6 +145,10 @@
 					$item.addClass(self.cssClass('disabled'));
 					$item.attr('data-disabled', true);
 				}
+
+				if ($child.parent('optgroup').length) {
+ 					$item.addClass(self.cssClass('optgroup-child'));
+ 				}
 
 				$item.data('associated-option', $child);
 				$child.data('associated-item', $item);
@@ -190,7 +214,7 @@
 			$container.append($dropdown);
 			$container.addClass(this.cssClass('container-box'));
 		} else {
-			throw "not possible";
+			this.report('Not possible!');
 		}
 
 		// replace the selectbox
@@ -198,7 +222,7 @@
 			this.$el.wrap($container);
 			$head.insertAfter(this.$el);
 		} else {
-			this.$el.hide();
+			//this.$el.hide();
 			$container.insertAfter(this.$el);
 		}
 
@@ -238,11 +262,62 @@
 		});
 
 		// handle mouseover/mouseleave events on selectbox items
-		this.containers['list'].on('mouseenter mouseleave', 'li:not(.'+ this.cssClass('optgroup', false) +')', function(){
+		this.containers['list'].on('mouseenter mouseleave', 'li:not(.'+ this.cssClass('optgroup', false) +')', function(evt){
 			var $this = $(this);
-			$this.toggleClass(self.cssClass('focused', false));
+			$this.toggleClass(self.cssClass('focused', false), evt.type == 'mouseenter').siblings().removeClass(self.cssClass('focused', false));
+		});
+
+		// handle clicks on selectbox items
+		this.containers['list'].on('click', 'li:not(.'+ this.cssClass('optgroup', false) +')', function(){
+			var $this = $(this);
+
+			if (!$this.hasClass(self.cssClass('disabled', false))) {
+				self.setActive($(this));
+			}
 		});
 	};
+
+	// method - set active
+	CarbonBox.prototype.setActive = function(item){
+		// shortcut variables
+		var newValue = '',
+			activeClass = this.cssClass('active', false);
+
+		if (!this.isMultiple) {
+			if (!this.isMobile) {
+				item.data('associated-option').prop('selected', true);
+				item.addClass(activeClass);
+				item.siblings().removeClass(activeClass);
+				newValue = item.html();
+
+				this.closeDropdown();
+			} else if (this.isMobile) {
+				newValue = this.$child.filter(':selected').first().html();
+			} else {
+				this.report('Cannot find any valid option!');
+			}
+		} else if (this.isMultiple) {
+			item.toggleClass(activeClass);
+			item.data('associated-option').prop('selected', item.hasClass('activeClass'));
+
+			if (this.config.layout == 'dropdown') {
+				newValue = [];
+				this.$allItems.filter('.' + activeClass).each(function(){
+					newValue.push($(this).html());
+				});
+			} 
+		} else {
+			this.report('Cannot find any valid option!');
+		}
+
+		// convert newValue
+		if ($.isArray(newValue)){
+			newValue = newValue.join(', ');
+		}
+
+		this.containers['current'].html(newValue);
+
+	}
 
 	// method - open dropdown
 	CarbonBox.prototype.openDropdown = function(){
@@ -341,8 +416,7 @@
 
 		var currentIndex,
 			focused = this.$allItems.filter('.' + this.cssClass('focused', false)),
-			// currentActive = this.$allItems.filter('.' + this.cssClass('active', false)).last();
-			currentActive = this.$allItems.not('.' + this.cssClass('disabled', false) ).first(); // REMOVE THIS!
+			currentActive = this.$allItems.filter('.' + this.cssClass('active', false));
 
 		// determine the current index
 		if (focused.length) {
@@ -515,7 +589,7 @@
 
 			case codes['tab']:
 			case codes['enter']:
-				var focused = self.$allItems.filter('.' + self.cssClass('focused'));
+				var focused = self.$allItems.filter('.' + self.cssClass('focused', false));
 				self.setActive(focused);
 				self.closeDropdown();
 			break;
