@@ -65,7 +65,7 @@
 		this.isMobile = this.config.isMobile();
 		this.searchTimeout = null;
 		this.searchPhrase = '';
-		this.searchDelay = 250;
+		this.searchDelay = 350;
 
 		// html structure
 		this.containers = {
@@ -399,13 +399,15 @@
 		var focusedClass = this.cssClass('focused', false);
 
 		// remove the focused class from the siblings
-		this.$allItems.filter('.' + focusedClass).removeClass(focusedClass);
 		var focused_class = this.cssClass('focused', false);
 		var oldFocused = this.$allItems.filter('.' + focused_class);
 		oldFocused.removeClass(focused_class);
 
+		this.$allItems.filter('.' + focusedClass).removeClass(focusedClass);
+
 		// focus the element
 		item.addClass(focusedClass);
+
 		var ddCont = this.containers.dropdown;
 
 		// Calculate the item top position. Note that the pane scorllTop value must be
@@ -438,12 +440,11 @@
 			// the pane bottom bondary
 			var ddHeight = ddCont.height();
 			var newScrollTop = itemPos.bottom - ddHeight;
-			console.log("Moving pane to " + newScrollTop);
 			ddCont.scrollTop(newScrollTop);
 		} else if(oldFocusedItemIndex > newFocusedItemIndex) {
 			// Moving up in the list; should align the item top boundary with 
 			// the pane top bondary
-			// ddCont.scrollTop(itemPos.top);
+			ddCont.scrollTop(itemPos.top);
 		} else {
 			throw "old focused item should not have the same index as the new focused item";
 		}
