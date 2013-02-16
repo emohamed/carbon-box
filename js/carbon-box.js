@@ -491,7 +491,6 @@
 			top: itemTop,
 			bottom: itemTop + item.outerHeight()
 		}
-		console.log(itemPos);
 
 		var ddContTop = ddCont.scrollTop();
 		var panePos = {
