@@ -8,7 +8,10 @@
 .crb-current,
 .crb-option { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 
-.crb-box .crb-dropdown { display: block; position: static; }
+.crb-container-box .crb-dropdown { display: block; position: static; }
+
+.crb-container-mobile { position: relative; overflow: hidden; }
+.crb-container-mobile select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; filter: alpha(opacity=0); cursor: pointer; -webkit-appearance: none; }
 
 /* CarbonBox - User */
 .crb-container { width: 200px; }
@@ -29,7 +32,6 @@
 .crb-option { color: #333; }
 .crb-optgroup-child { padding-left: 10px; }
 
-.crb-option:hover,
 .crb-focused,
 .crb-active { background: #ededed; color: #000; }
 
