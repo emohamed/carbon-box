@@ -60,8 +60,10 @@
 		this.config = $.extend({}, defaults, options);
 		this.ns = 'crb-';
 		this.uns = this.config.namespace;
-		this.isMultiple = 'multiple' in element.attributes;
-		this.isDisabled = 'disabled' in element.attributes;
+		this.isDisabled = this.$el.is(':disabled');
+		this.isMultiple = this.$el.is(function(){
+			return $(this).attr('multiple') != undefined;
+		});
 		this.isMobile = this.config.isMobile();
 		this.searchTimeout = null;
 		this.searchPhrase = '';
@@ -91,6 +93,9 @@
 			this.containers['container'].addClass(this.cssClass('container-disabled'));
 		}
 
+		// add position classes
+		this.containers['dropdown'].addClass(this.cssClass('dropdown-' + this.config.position));
+
 		// replace selectbox & bind events & handle selected options
 		this.replaceSelectbox();
 		this.bindEvents();
@@ -100,26 +105,23 @@
 	CarbonBox.prototype.initState = function(){
 		// cache the constructor reference
 		var self = this;
-		var selected = this.$el.find('[selected]');
-
-		if (!selected.length) {
-			selected = this.$el.find('option:not(:disabled)').first();
-		}
+		var selected = this.$el.find('option:selected');
 
 		if (this.isMultiple) {
-			selected.each(function(){
-				self.setActive($(this).data('associated-item'));
-			})
-		} else {
-			var option = selected.first().data('associated-item');
-
-			if (this.isMobile) {
-				this.setActive();
-			} else {
-				this.setActive(option);
+			if(selected.length) {
+				selected.each(function(){
+					self.setActive($(this).data('associated-item'));
+				})
 			}
+		} else {
+			if (!selected.length) {
+				selected = this.$el.find('option:not(:disabled)').first();
+			}
+			var option = selected.first().data('associated-item');
+			this.setActive(option);
 		}
 	};
+
 	// method - build custom ui
 	CarbonBox.prototype.buildUI = function(){
 		// cache the constructor reference
@@ -186,10 +188,8 @@
 			context = this.config.context;
 
 		// build the dropdown list
-		if (!this.isMobile || this.isMobile && layout == 'box') {
-			this.buildUI();
-			$dropdown.append($list);
-		}
+		this.buildUI();
+		$dropdown.append($list);
 
 		// build the head
 		$button.append($arrow);
@@ -208,7 +208,6 @@
 				} 
 			} else {
 				$container.addClass(this.cssClass('container-mobile'));
-				$container.append($head);
 			}
 		} else if (layout == 'box') {
 			$container.append($dropdown);
@@ -221,8 +220,9 @@
 		if (this.isMobile && layout == 'dropdown') {
 			this.$el.wrap($container);
 			$head.insertAfter(this.$el);
+			$dropdown.insertAfter($head);
 		} else {
-			//this.$el.hide();
+			this.$el.hide();
 			$container.insertAfter(this.$el);
 		}
 
@@ -232,7 +232,11 @@
 		}
 
 		// save all items
-		this.$allItems = $container.find('.' + this.cssClass('option', false));
+		if (!this.isMobile) {
+			this.$allItems = $container.find('.' + this.cssClass('option', false));
+		} else {
+			this.$allItems = this.$el.siblings('.' + this.cssClass('dropdown', false)).find('.' + this.cssClass('option', false));
+		}
 	};
 
 	// method - bind all events
@@ -275,6 +279,23 @@
 				self.setActive($(this));
 			}
 		});
+
+		this.$el.on('change', function(){
+			if (self.isMobile && self.config.layout == 'dropdown') {
+				var items = $(this).find(':selected');
+				self.$allItems.removeClass(self.cssClass('active', false));
+
+				if (items.length > 1) {
+					items.each(function(){
+						self.setActive($(this).data('associated-item'));
+					})
+				} else if (items.length == 1) {
+					self.setActive(items.data('associated-item'));
+				} else {
+					self.containers['current'].html('');
+				}
+			}
+		})
 	};
 
 	// method - set active
@@ -284,28 +305,29 @@
 			activeClass = this.cssClass('active', false);
 
 		if (!this.isMultiple) {
-			if (!this.isMobile) {
-				item.data('associated-option').prop('selected', true);
-				item.addClass(activeClass);
-				item.siblings().removeClass(activeClass);
-				newValue = item.html();
+			item.data('associated-option').prop('selected', true);
+			item.addClass(activeClass);
+			item.siblings().removeClass(activeClass);
+			newValue = item.html();
 
+			if (!this.isMobile) {
 				this.closeDropdown();
-			} else if (this.isMobile) {
-				newValue = this.$child.filter(':selected').first().html();
-			} else {
-				this.report('Cannot find any valid option!');
 			}
+
 		} else if (this.isMultiple) {
 			item.toggleClass(activeClass);
-			item.data('associated-option').prop('selected', item.hasClass('activeClass'));
 
+			if (!(this.isMobile && this.config.layout == 'dropdown')) {
+				item.data('associated-option').prop('selected', item.hasClass('activeClass'));
+			}
+			
 			if (this.config.layout == 'dropdown') {
 				newValue = [];
 				this.$allItems.filter('.' + activeClass).each(function(){
 					newValue.push($(this).html());
 				});
 			} 
+
 		} else {
 			this.report('Cannot find any valid option!');
 		}
@@ -317,6 +339,9 @@
 
 		this.containers['current'].html(newValue);
 
+		if (!this.isMobile || this.isMobile && this.config.layout == 'box') {
+			this.$el.trigger('change');
+		}
 	}
 
 	// method - open dropdown
@@ -590,7 +615,6 @@
 			case codes['enter']:
 				var focused = self.$allItems.filter('.' + self.cssClass('focused', false));
 				self.setActive(focused);
-				self.closeDropdown();
 			break;
 
 			case codes['esc']:

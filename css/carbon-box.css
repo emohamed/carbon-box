@@ -1,8 +1,8 @@
 /* CarbonBox - Core */
-.crb-container { display: inline-block; vertical-align: middle; cursor: pointer; text-align: left; }
+.crb-container { position: relative; display: inline-block; vertical-align: middle; cursor: pointer; text-align: left; z-index: 0; }
 .crb-head { overflow: hidden; }
 
-.crb-dropdown { position: absolute; top: auto; left: auto; right: auto; display: none; overflow-x: hidden; overflow-y: auto; }
+.crb-dropdown { position: absolute; top: auto; left: auto; display: none; overflow-x: hidden; overflow-y: auto; }
 .crb-list { list-style: none outside none; font-size: 0; line-height: 0; }
 
 .crb-current,
@@ -39,6 +39,13 @@
 .crb-disabled:hover { cursor: default; background: transparent; color: #ccc; }
 
 .crb-optgroup { color: #000; font-weight: bold; }
+
+.crb-dropdown-top { top: 100%; left: 0; }
+.crb-dropdown-bottom { bottom: 100%; left: 0; }
+
+.crb-closing,
+.crb-opened { z-index: 1; }
+.crb-opening { z-index: 2; }
 
 
 
