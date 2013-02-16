@@ -95,8 +95,11 @@
 		this.replaceSelectbox();
 		this.bindEvents();
 
+		this.initState();
 	};
-
+	CarbonBox.prototype.initState = function(){
+		// this.setActive();
+	};
 	// method - build custom ui
 	CarbonBox.prototype.buildUI = function(){
 		// cache the constructor reference
@@ -327,21 +330,25 @@
 	CarbonBox.prototype.stopKeyboardMonitoring = function(){
 		$doc.off('keydown', 'body', this.keyDownCallback);
 	};
-
+	var move_to_item_calls_count = 0;
 	// method - move to item
 	CarbonBox.prototype.moveToItem = function(direction, step){
+		if (move_to_item_calls_count++ > 150) {
+			throw "Too much recursion";
+		}
+
 		// cache the constructor reference
 		var self = this;
 
 		var currentIndex,
 			focused = this.$allItems.filter('.' + this.cssClass('focused', false)),
-			currentActive = this.$allItems.filter('.' + this.cssClass('active', false)).last();
+			// currentActive = this.$allItems.filter('.' + this.cssClass('active', false)).last();
+			currentActive = this.$allItems.not('.' + this.cssClass('disabled', false) ).first(); // REMOVE THIS!
 
 		// determine the current index
 		if (focused.length) {
 			currentIndex = this.$allItems.index(focused);
-		} 
-		else {
+		} else {
 			currentIndex = this.$allItems.index(currentActive);
 		}
 
@@ -361,23 +368,20 @@
 		var targetItem = this.$allItems.eq(targetIndex);
 
 		if (targetItem.hasClass(this.cssClass('disabled', false))) {
-			var isLast = targetItem.is(':last'),
-				isFirst = targetItem.is(':first'),
-				activeSelector = ':not(.'+ this.cssClass('disabled') +')';
+			var isLast  = this.$allItems.index(targetItem) == this.$allItems.length - 1,
+				isFirst = this.$allItems.index(targetItem) == 0,
+				enabledSelector = ':not(.'+ this.cssClass('disabled', false) +')';
 
 			if (direction == 'down' && isLast) {
-				var lastActive = this.$allItems.filter(activeSelector + ':last');
-				this.setFocusedItem(lastActive);
-			}
-			else if (direction == 'up' && isFirst) {
-				var firstActive = this.$allItems.filter(activeSelector + ':first');
-				this.setFocusedItem(firstActive);
-			}
-			else {
+				var lastEnabled = this.$allItems.filter(enabledSelector + ':last');
+				this.setFocusedItem(lastEnabled);
+			} else if (direction == 'up' && isFirst) {
+				var firstEnabled = this.$allItems.filter(enabledSelector + ':first');
+				this.setFocusedItem(firstEnabled);
+			} else {
 				this.moveToItem(direction, step + 1);
 			}
-		}
-		else {
+		} else {
 			this.setFocusedItem(targetItem);
 		}
 
