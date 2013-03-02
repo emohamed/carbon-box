@@ -42,6 +42,7 @@
 		},
 		renderOption: false,
 		renderOptgroup: false,
+		hideOriginalSelect: true,
 		onCreate: false,
 		onShow: false,
 		onHide: false,
@@ -234,7 +235,9 @@
 			$head.insertAfter(this.$el);
 			$dropdown.insertAfter($head);
 		} else {
-			this.$el.hide();
+			if (this.config.hideOriginalSelect) {
+				this.$el.hide();
+			}
 			$container.insertAfter(this.$el);
 		}
 
@@ -312,21 +315,20 @@
 			}
 		});
 
-
 		this.$el.on('change', function(){
-			if (self.isMobile && self.config.layout == 'dropdown') {
-				var items = $(this).find(':selected');
-				self.$allItems.removeClass(self.cssClass('active', false));
+			var items = $(this).find(':selected');
+			self.$allItems.removeClass(self.cssClass('active', false));
 
-				if (items.length > 1) {
-					items.each(function(){
-						self.setActive($(this).data('associated-item'));
-					})
-				} else if (items.length == 1) {
-					self.setActive(items.data('associated-item'));
-				} else {
-					self.containers['current'].html('');
-				}
+			if (items.length > 1) {
+				items.each(function(){
+					self.setActive($(this).data('associated-item'), true);
+				})
+			} else if (items.length == 1) {
+				// The second Arg instructs setActive NOT to trigger the change event
+				// This avoids endless
+				self.setActive(items.data('associated-item'), true);
+			} else {
+				self.containers['current'].html('');
 			}
 		});
 
@@ -350,8 +352,8 @@
 	};
 
 	// method - set active
-	CarbonBox.prototype.setActive = function(item){
-		// shortcut variables
+	CarbonBox.prototype.setActive = function(item, skip_trigger_change){
+		skip_trigger_change = skip_trigger_change || false;
 		var newValue = '',
 			activeClass = this.cssClass('active', false);
 
@@ -377,22 +379,25 @@
 				this.getItems(activeClass).each(function(){
 					newValue.push($(this).html());
 				});
-			} 
-
+			}
 		} else {
 			this.report('Cannot find any valid option!');
 		}
 
 		// convert newValue
-		if ($.isArray(newValue)){
+		if ($.isArray(newValue)) {
 			newValue = newValue.join(', ');
 		}
 
 		this.containers['current'].html(newValue);
-
-		if (!this.isMobile || this.isMobile && this.config.layout == 'box') {
+		if (!skip_trigger_change) {
 			this.$el.trigger('change');
 		}
+		
+
+		// if (!this.isMobile || this.isMobile && this.config.layout == 'box') {
+		// this.$el.trigger('change');
+		// }
 	}
 
 	// method - open dropdown
@@ -446,6 +451,7 @@
 			transitionType = '';
 
 		if (this.config.layout == 'dropdown') {
+
 			$container.addClass(this.cssClass('closing', false));
 
 			switch (this.config.transition) {
