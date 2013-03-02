@@ -71,7 +71,7 @@
 
 		// html structure
 		this.containers = {
-			'container': $('<div />', { 'class': self.cssClass('container') }),
+			'container': $('<div tabindex="0"></div>', { 'class': self.cssClass('container') }),
 			'head': $('<div />', { 'class': self.cssClass('head') }),
 			'current': $('<div />', { 'class': self.cssClass('current') }),
 			'button': $('<div />', { 'class': self.cssClass('button') }),
