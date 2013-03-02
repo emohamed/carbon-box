@@ -100,6 +100,18 @@
 		this.replaceSelectbox();
 		this.bindEvents();
 		this.initState();
+
+		this.keycodes = {
+			keyDown: 40,
+			keyUp: 38,
+			home: 36,
+			end: 35,
+			pageDown: 34,
+			pageUp: 33,
+			esc: 27,
+			enter: 13,
+			tab: 9
+		};
 	};
 
 	CarbonBox.prototype.initState = function(){
@@ -245,6 +257,12 @@
 		return this.$allItems.filter('.' + this.cssClass(type, false));
 	}
 
+	// Whether the select box is currently opened
+	CarbonBox.prototype.isOpened = function () {
+		var opened_class = this.cssClass('opened', false);
+		return this.containers['container'].hasClass(opened_class);
+	}
+
 	// method - bind all events
 	CarbonBox.prototype.bindEvents = function(){
 		// cache the constructor reference
@@ -258,9 +276,17 @@
 
 			if (self.containers['dropdown'].is(':visible')) {
 				self.closeDropdown();
-			} 
-			else {
+			} else {
 				self.openDropdown();
+			}
+		});
+
+		// Handle the events of focused elements. 
+		self.containers['container'].on('keydown', function (e) {
+			if (e.keyCode == self.keycodes.keyDown && !self.isOpened()) {
+				self.openDropdown();
+			} else if (e.keyCode == self.keycodes.esc && self.isOpened()) {
+				self.closeDropdown();
 			}
 		});
 
@@ -402,7 +428,6 @@
 			if ($.isFunction(self.config.onShow)) {
 				self.config.onShow(self);
 			}
-
 			$container.removeClass(self.cssClass('opening', false));
 			$container.addClass(self.cssClass('opened', false));
 		});
@@ -411,7 +436,7 @@
 	};
 
 	// method - close dropdown
-	CarbonBox.prototype.closeDropdown = function(){
+	CarbonBox.prototype.closeDropdown = function(event) {
 		// cache the constructor reference
 		var self = this;
 
@@ -450,7 +475,7 @@
 	};
 
 	// method - start keyboard monitoring
-	CarbonBox.prototype.startKeyboardMonitoring = function(){
+	CarbonBox.prototype.startKeyboardMonitoring = function() {
 		$doc.on('keydown', 'body', this, this.keyDownCallback);
 	};
 
@@ -609,18 +634,8 @@
 	CarbonBox.prototype.keyDownCallback = function(evt){
 		// cache the constructor reference
 		var self = evt.data;
-		var codes = {
-			keyDown: 40,
-			keyUp: 38,
-			home: 36,
-			end: 35,
-			pageDown: 34,
-			pageUp: 33,
-			esc: 27,
-			enter: 13,
-			tab: 9
-		};
-
+		
+		var codes = self.keycodes;
 		var keyCode = evt.keyCode;
 
 		switch (keyCode) {
